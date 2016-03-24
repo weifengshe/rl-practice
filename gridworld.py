@@ -2,11 +2,14 @@ import numpy as np
 import operator
 
 class GridWorld(object):
-  def __init__(self, dimensions, start_state, goal_state):
+  def __init__(self, dimensions, start_state, goal_state,
+      goal_reward = 10, step_reward = -1):
     self.dimensions = dimensions
+    self.states = set(np.ndindex(dimensions))
     self.current_state = start_state
     self.goal_state = goal_state
-    self.states = set(np.ndindex(dimensions))
+    self.goal_reward = goal_reward
+    self.step_reward = step_reward
 
   actions_and_updates = [
     ('up', (-1, 0)),
@@ -22,7 +25,15 @@ class GridWorld(object):
     def keep_within_bounds(coordinate, dimension_size):
       return max(0, min(coordinate, dimension_size - 1))
 
+    def reward(new_state):
+      if new_state == self.goal_state:
+        return self.goal_reward + self.step_reward
+      else:
+        return self.step_reward
+
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, self.current_state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
     self.current_state = tuple(bounded_coords)
+
+    return reward(self.current_state), self.current_state
