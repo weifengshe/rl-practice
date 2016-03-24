@@ -9,7 +9,8 @@ class TestGridWorld(unittest.TestCase):
       start_state = (1, 1),
       goal_state = (2, 2),
       goal_reward = 10,
-      step_reward = -1)
+      step_reward = -1,
+      max_steps = 100)
 
   def test_lists_all_actions(self):
     self.assertEqual(sorted(self.world.actions),
@@ -54,19 +55,30 @@ class TestGridWorld(unittest.TestCase):
     self.assertEqual(reward, -1)
 
   def test_reaching_goal_is_rewarded(self):
-    reward, _ = self.world.take_action('right')
+    self.world.take_action('right')
     reward, _ = self.world.take_action('down')
     self.assertEqual(reward, 10 - 1)
 
   def test_process_terminates_at_goal_state(self):
     self.assertFalse(self.world.terminated)
-    reward, _ = self.world.take_action('right')
+    self.world.take_action('right')
     self.assertFalse(self.world.terminated)
-    reward, _ = self.world.take_action('down')
+    self.world.take_action('down')
     self.assertTrue(self.world.terminated)
 
     with self.assertRaises(AssertionError):
       self.world.take_action('down')
+
+  def test_process_terminates_after_max_steps(self):
+    self.assertEqual(self.world.max_steps, 100)
+
+    for step in xrange(100):
+      self.assertEqual(self.world.step, step)
+      self.assertFalse(self.world.terminated)
+      self.world.take_action('up')
+
+    self.assertEqual(self.world.step, 100)
+    self.assertTrue(self.world.terminated)
 
   def test_resetting_returns_to_start_state(self):
     reward, _ = self.world.take_action('right')
@@ -76,3 +88,4 @@ class TestGridWorld(unittest.TestCase):
     self.world.reset()
     self.assertFalse(self.world.terminated)
     self.assertEqual(self.world.current_state, (1, 1))
+    self.assertEqual(self.world.step, 0)

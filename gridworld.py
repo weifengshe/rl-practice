@@ -13,19 +13,21 @@ class GridWorld(object):
   coordinate_updates = [direction for (_, direction) in actions_and_updates]
 
   def __init__(self, dimensions, start_state, goal_state,
-      goal_reward = 10, step_reward = -1):
+      goal_reward = 10, step_reward = -1, max_steps = 100):
     self.dimensions = dimensions
     self.states = set(np.ndindex(dimensions))
     self.start_state = start_state
-    self.current_state = start_state
     self.goal_state = goal_state
     self.goal_reward = goal_reward
     self.step_reward = step_reward
-    assert self.is_state(self.current_state)
+    self.max_steps = max_steps
+    assert self.is_state(self.start_state)
     assert self.is_state(self.goal_state)
+    self.reset()
 
   def reset(self):
     self.current_state = self.start_state
+    self.step = 0
     assert self.is_state(self.current_state)
 
   def take_action(self, action):
@@ -44,6 +46,7 @@ class GridWorld(object):
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
     self.current_state = tuple(bounded_coords)
     assert self.is_state(self.current_state)
+    self.step += 1
     return reward(self.current_state), self.current_state
 
   def is_state(self, maybe_state):
@@ -51,4 +54,4 @@ class GridWorld(object):
 
   @property
   def terminated(self):
-    return self.current_state == self.goal_state
+    return (self.current_state == self.goal_state) or (self.step >= self.max_steps)
