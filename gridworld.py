@@ -11,6 +11,9 @@ class GridWorld(object):
     self.goal_reward = goal_reward
     self.step_reward = step_reward
 
+    assert self.is_state(self.current_state)
+    assert self.is_state(self.goal_state)
+
   actions_and_updates = [
     ('up', (-1, 0)),
     ('down', (1, 0)),
@@ -31,9 +34,19 @@ class GridWorld(object):
       else:
         return self.step_reward
 
+    assert not self.terminated
+
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, self.current_state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
     self.current_state = tuple(bounded_coords)
+    assert self.is_state(self.current_state)
 
     return reward(self.current_state), self.current_state
+
+  def is_state(self, maybe_state):
+    return maybe_state in self.states
+
+  @property
+  def terminated(self):
+    return self.current_state == self.goal_state

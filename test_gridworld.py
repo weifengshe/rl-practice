@@ -34,10 +34,17 @@ class TestGridWorld(unittest.TestCase):
     self.assertEqual(new_state, (1, 1))
 
   def test_moves_on_boundaries(self):
-    self.world = GridWorld((1, 1), (0, 0), (0, 0))
-    for action in self.world.actions:
-      self.world.take_action(action)
-      self.assertEqual(self.world.current_state, (0, 0))
+    actions_on_boundaries = [
+      ('up', (0, 0)),
+      ('left', (0, 0)),
+      ('right', (2, 2)),
+      ('down', (2, 2))
+    ]
+
+    for action, state in actions_on_boundaries:
+      self.world = GridWorld((3, 3), state, (1, 1))
+      _, new_state = self.world.take_action(action)
+      self.assertEqual(state, new_state)
 
   def test_every_step_is_penalized(self):
     reward, _ = self.world.take_action('up')
@@ -50,3 +57,10 @@ class TestGridWorld(unittest.TestCase):
     reward, _ = self.world.take_action('right')
     reward, _ = self.world.take_action('down')
     self.assertEqual(reward, 10 - 1)
+
+  def test_process_terminates_at_goal_state(self):
+    self.assertFalse(self.world.terminated)
+    reward, _ = self.world.take_action('right')
+    self.assertFalse(self.world.terminated)
+    reward, _ = self.world.take_action('down')
+    self.assertTrue(self.world.terminated)
