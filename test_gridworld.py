@@ -64,3 +64,15 @@ class TestGridWorld(unittest.TestCase):
     self.assertFalse(self.world.terminated)
     reward, _ = self.world.take_action('down')
     self.assertTrue(self.world.terminated)
+
+    with self.assertRaises(AssertionError):
+      self.world.take_action('down')
+
+  def test_resetting_returns_to_start_state(self):
+    reward, _ = self.world.take_action('right')
+    reward, _ = self.world.take_action('down')
+    self.assertTrue(self.world.terminated)
+
+    self.world.reset()
+    self.assertFalse(self.world.terminated)
+    self.assertEqual(self.world.current_state, (1, 1))
