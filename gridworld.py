@@ -31,6 +31,21 @@ class GridWorld(object):
     assert self.is_state(self.current_state)
 
   def take_action(self, action):
+    (reward, new_state) = self.followup(action)
+    self.current_state = new_state
+    self.step += 1
+    return (reward, new_state)
+
+  @property
+  def terminated(self):
+    return (self.current_state == self.goal_state) or (self.step >= self.max_steps)
+
+  @property
+  def followups(self):
+    return [(action,) + self.followup(action)
+        for action in self.actions]
+
+  def followup(self, action):
     def keep_within_bounds(coordinate, dimension_size):
       return max(0, min(coordinate, dimension_size - 1))
 
@@ -44,14 +59,10 @@ class GridWorld(object):
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, self.current_state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
-    self.current_state = tuple(bounded_coords)
-    assert self.is_state(self.current_state)
-    self.step += 1
-    return reward(self.current_state), self.current_state
+    new_state = tuple(bounded_coords)
+    assert self.is_state(new_state)
+    return reward(new_state), new_state
 
   def is_state(self, maybe_state):
     return maybe_state in self.states
 
-  @property
-  def terminated(self):
-    return (self.current_state == self.goal_state) or (self.step >= self.max_steps)
