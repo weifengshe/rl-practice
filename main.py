@@ -1,7 +1,7 @@
 from gridworld import GridWorld
 from td import TD
 from td0 import TD0
-from greedy import Greedy
+from greedy import Epsilon, Greedy
 from simulation import Simulation
 import numpy as np
 
@@ -17,14 +17,12 @@ td = TD(
     states=environment.states,
     td_lambda=0.5,
     learning_rate=0.01)
-greedy = Greedy(environment.get_followups, td)
+greedy = Epsilon(Greedy(environment.get_followups, td))
 
 simulation = Simulation(environment)
 
 for step in xrange(1, 10000):
-  greedy.epsilon = 1.0/step
-  td.reset()
-  episode = simulation.run_policy(greedy.choose_action, td.learn)
+  episode = simulation.run_policy(greedy, td)
   if step % 100 == 0:
     print len(episode),
 print

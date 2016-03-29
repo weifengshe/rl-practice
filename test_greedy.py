@@ -35,13 +35,3 @@ class TestGreedy(unittest.TestCase):
 
     action = self.greedy.choose_action('b')
     self.assertEqual(action, 'to_a')
-
-  # Will give false negatives randomly with a very small probability
-  def test_choose_randomly_with_probability_epsilon(self):
-    self.greedy.epsilon = 0.5
-
-    actions = [self.greedy.choose_action('a')
-        for _ in xrange(10000)]
-
-    self.assertTrue(2000 < actions.count('to_a') < 3000)
-    self.assertTrue(7000 < actions.count('to_b') < 8000)

@@ -13,8 +13,19 @@ class TestSimulation(unittest.TestCase):
       step_reward = -1)
     self.simulation = Simulation(self.environment)
 
+    self.stupid_policy = PolicyStub({
+        (1, 1): 'left',
+        (1, 0): 'left'
+      })
+
+    self.smart_policy = PolicyStub({
+        (1, 1): 'right',
+        (1, 2): 'down'
+      })
+
+
   def test_policy_run_for_max_steps(self):
-    history = self.simulation.run_policy(lambda s: 'left')
+    history = self.simulation.run_policy(self.stupid_policy)
 
     self.assertEqual(len(history), 101)
     self.assertEqual(history[0], ((1, 1), 'left', -1))
@@ -23,14 +34,7 @@ class TestSimulation(unittest.TestCase):
     self.assertEqual(history[-1], ((1, 0), None, None))
 
   def test_policy_run_finding_goal(self):
-    def smart_policy(state):
-      actions = {
-        (1, 1): 'right',
-        (1, 2): 'down'
-      }
-      return actions[state]
-
-    history = self.simulation.run_policy(smart_policy)
+    history = self.simulation.run_policy(self.smart_policy)
 
     self.assertEqual(history, [
         ((1, 1), 'right', -1),
@@ -38,19 +42,30 @@ class TestSimulation(unittest.TestCase):
         ((2, 2), None, None)])
 
   def test_policy_run_gives_feedback(self):
-    def smart_policy(state):
-      actions = {
-        (1, 1): 'right',
-        (1, 2): 'down'
-      }
-      return actions[state]
+    learner = LearnerStub()
+    self.simulation.run_policy(self.smart_policy, learner)
 
-    feedback = []
-    def accumulate_feedback(state, action, reward, new_state):
-      feedback.append((state, action, reward, new_state))
-
-    self.simulation.run_policy(smart_policy, accumulate_feedback)
-
-    self.assertEqual(feedback, [
+    self.assertEqual(learner.accumulator, [
         ((1, 1), 'right', -1, (1, 2)),
         ((1, 2), 'down', 9, (2, 2))])
+
+
+class PolicyStub(object):
+  def __init__(self, action_lookup):
+    self.action_lookup = action_lookup
+
+  def choose_action(self, state):
+    return self.action_lookup[state]
+
+  def reset(self):
+    pass
+
+class LearnerStub(object):
+  def __init__(self):
+    self.accumulator = []
+
+  def learn(self, state, action, reward, new_state):
+    self.accumulator.append((state, action, reward, new_state))
+
+  def reset(self):
+    pass
