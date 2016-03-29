@@ -31,7 +31,7 @@ class GridWorld(object):
     assert self.is_state(self.current_state)
 
   def take_action(self, action):
-    (reward, new_state) = self.followup(action)
+    (reward, new_state) = self.get_followup(self.current_state, action)
     self.current_state = new_state
     self.step += 1
     return (reward, new_state)
@@ -40,12 +40,11 @@ class GridWorld(object):
   def terminated(self):
     return (self.current_state == self.goal_state) or (self.step >= self.max_steps)
 
-  @property
-  def followups(self):
-    return [(action,) + self.followup(action)
+  def get_followups(self, state):
+    return [(action,) + self.get_followup(state, action)
         for action in self.actions]
 
-  def followup(self, action):
+  def get_followup(self, state, action):
     def keep_within_bounds(coordinate, dimension_size):
       return max(0, min(coordinate, dimension_size - 1))
 
@@ -57,7 +56,7 @@ class GridWorld(object):
 
     assert not self.terminated
     update = self.coordinate_updates[self.actions.index(action)]
-    updated_coords = map(operator.add, self.current_state, update)
+    updated_coords = map(operator.add, state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
     new_state = tuple(bounded_coords)
     assert self.is_state(new_state)
