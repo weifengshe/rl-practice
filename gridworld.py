@@ -23,9 +23,9 @@ class GridWorld(object):
     self.max_steps = max_steps
     assert self.is_state(self.start_state)
     assert self.is_state(self.goal_state)
-    self.reset()
+    self.start_episode()
 
-  def reset(self):
+  def start_episode(self):
     self.current_state = self.start_state
     self.step = 0
     assert self.is_state(self.current_state)

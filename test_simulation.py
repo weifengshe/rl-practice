@@ -11,7 +11,6 @@ class TestSimulation(unittest.TestCase):
       goal_state = (2, 2),
       goal_reward = 10,
       step_reward = -1)
-    self.simulation = Simulation(self.environment)
 
     self.stupid_policy = PolicyStub({
         (1, 1): 'left',
@@ -25,7 +24,8 @@ class TestSimulation(unittest.TestCase):
 
 
   def test_policy_run_for_max_steps(self):
-    history = self.simulation.run_policy(self.stupid_policy)
+    simulation = Simulation(self.environment, self.stupid_policy)
+    history = simulation.run_episode()
 
     self.assertEqual(len(history), 101)
     self.assertEqual(history[0], ((1, 1), 'left', -1))
@@ -34,7 +34,8 @@ class TestSimulation(unittest.TestCase):
     self.assertEqual(history[-1], ((1, 0), None, None))
 
   def test_policy_run_finding_goal(self):
-    history = self.simulation.run_policy(self.smart_policy)
+    simulation = Simulation(self.environment, self.smart_policy)
+    history = simulation.run_episode()
 
     self.assertEqual(history, [
         ((1, 1), 'right', -1),
@@ -43,7 +44,8 @@ class TestSimulation(unittest.TestCase):
 
   def test_policy_run_gives_feedback(self):
     learner = LearnerStub()
-    self.simulation.run_policy(self.smart_policy, learner)
+    simulation = Simulation(self.environment, self.smart_policy, learner)
+    simulation.run_episode()
 
     self.assertEqual(learner.accumulator, [
         ((1, 1), 'right', -1, (1, 2)),
@@ -57,7 +59,7 @@ class PolicyStub(object):
   def choose_action(self, state):
     return self.action_lookup[state]
 
-  def reset(self):
+  def start_episode(self):
     pass
 
 class LearnerStub(object):
@@ -67,5 +69,5 @@ class LearnerStub(object):
   def learn(self, state, action, reward, new_state):
     self.accumulator.append((state, action, reward, new_state))
 
-  def reset(self):
+  def start_episode(self):
     pass

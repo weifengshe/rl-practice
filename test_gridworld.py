@@ -92,7 +92,7 @@ class TestGridWorld(unittest.TestCase):
     reward, _ = self.world.take_action('down')
     self.assertTrue(self.world.terminated)
 
-    self.world.reset()
+    self.world.start_episode()
     self.assertFalse(self.world.terminated)
     self.assertEqual(self.world.current_state, (1, 1))
     self.assertEqual(self.world.step, 0)

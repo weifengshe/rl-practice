@@ -3,9 +3,9 @@ class TD(object):
     self.values = dict.fromkeys(states, 0)
     self.learning_rate = learning_rate
     self.td_lambda = td_lambda
-    self.reset()
+    self.start_episode()
 
-  def reset(self):
+  def start_episode(self):
     self.past_states = []
 
   def __getitem__(self, state):

@@ -19,10 +19,10 @@ td = TD(
     learning_rate=0.01)
 greedy = Epsilon(Greedy(environment.get_followups, td))
 
-simulation = Simulation(environment)
+simulation = Simulation(environment, greedy, td)
 
-for step in xrange(1, 10000):
-  episode = simulation.run_policy(greedy, td)
+for step in xrange(1, 1000):
+  episode = simulation.run_episode()
   if step % 100 == 0:
     print len(episode),
 print
