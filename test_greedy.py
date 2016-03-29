@@ -30,15 +30,17 @@ class TestGreedy(unittest.TestCase):
 
 
   def test_chooses_action_with_greatest_value(self):
-    action = self.greedy.choose_action('a', epsilon=0.0)
+    action = self.greedy.choose_action('a')
     self.assertEqual(action, 'to_b')
 
-    action = self.greedy.choose_action('b', epsilon=0.0)
+    action = self.greedy.choose_action('b')
     self.assertEqual(action, 'to_a')
 
   # Will give false negatives randomly with a very small probability
   def test_choose_randomly_with_probability_epsilon(self):
-    actions = [self.greedy.choose_action('a', epsilon=0.5)
+    self.greedy.epsilon = 0.5
+
+    actions = [self.greedy.choose_action('a')
         for _ in xrange(10000)]
 
     self.assertTrue(2000 < actions.count('to_a') < 3000)
