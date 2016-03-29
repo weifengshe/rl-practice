@@ -4,9 +4,9 @@ class Simulation(object):
 
   def run_policy(self, policy, feedback=None):
     self.environment.reset()
-    history = []
     state = self.environment.current_state
 
+    history = []
     while not self.environment.terminated:
       action = policy(state)
       reward, new_state = self.environment.take_action(action)
