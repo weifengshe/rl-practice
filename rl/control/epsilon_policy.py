@@ -14,6 +14,6 @@ class EpsilonPolicy:
     if random.random() > 1.0 / self.episode_count:
       return self.inner_policy.choose_action(state)
     else:
-      followups = self.inner_policy.get_followups(state)
+      followups = self.inner_policy.environment.get_followups(state)
       (action, _, _) = random.choice(followups)
       return action

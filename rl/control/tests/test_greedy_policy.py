@@ -1,23 +1,23 @@
 import unittest
-from ..greedy import GreedyPolicy
+from ..greedy_policy import GreedyPolicy
+
+
+class EnvironmentStub(object):
+  def __init__(self, followup_dictionary):
+    self.followup_dictionary = followup_dictionary
+
+  def get_followups(self, state):
+    return self.followup_dictionary[state]
 
 
 class TestGreedyPolicy(unittest.TestCase):
   def setUp(self):
-    def get_followups(state):
-      if state == 'a':
-        return [
-          ('to_a', 0, 'a'),
-          ('to_b', 0, 'b')
-        ]
-      elif state == 'b':
-        return [
-          ('to_a', 100, 'a'),
-          ('to_b', -100, 'b')
-        ]
-      else:
-        assert False
-
+    environment = EnvironmentStub({
+      'a': [('to_a', 0, 'a'),
+            ('to_b', 0, 'b')],
+      'b': [('to_a', 100, 'a'),
+            ('to_b', -100, 'b')]
+    })
 
     state_values = {
       'a': 1,
@@ -25,7 +25,7 @@ class TestGreedyPolicy(unittest.TestCase):
     }
 
     self.greedy = GreedyPolicy(
-        get_followups=get_followups,
+        environment=environment,
         state_values=state_values)
 
 

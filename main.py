@@ -16,7 +16,7 @@ td = TD(
     states=environment.states,
     td_lambda=0.5,
     learning_rate=0.01)
-epsilon_greedy = EpsilonPolicy(GreedyPolicy(environment.get_followups, td))
+epsilon_greedy = EpsilonPolicy(GreedyPolicy(environment, td))
 
 simulation = Simulation(environment, epsilon_greedy, td)
 
