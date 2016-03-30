@@ -1,4 +1,7 @@
-class Greedy:
+import random
+
+
+class GreedyPolicy:
   def __init__(self, get_followups, state_values):
     self.get_followups = get_followups
     self.state_values = state_values

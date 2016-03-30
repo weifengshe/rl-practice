@@ -1,7 +1,7 @@
 import random
 
 
-class Epsilon:
+class EpsilonPolicy:
   def __init__(self, inner_policy):
     self.inner_policy = inner_policy
     self.episode_count = 0

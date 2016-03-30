@@ -1,8 +1,8 @@
 import unittest
-from ..greedy import Greedy
+from ..greedy import GreedyPolicy
 
 
-class TestGreedy(unittest.TestCase):
+class TestGreedyPolicy(unittest.TestCase):
   def setUp(self):
     def get_followups(state):
       if state == 'a':
@@ -24,7 +24,7 @@ class TestGreedy(unittest.TestCase):
       'b': 10
     }
 
-    self.greedy = Greedy(
+    self.greedy = GreedyPolicy(
         get_followups=get_followups,
         state_values=state_values)
 

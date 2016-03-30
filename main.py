@@ -1,6 +1,6 @@
 from rl.environment import GridWorld
 from rl.prediction import TD
-from rl.control import Epsilon, Greedy
+from rl.control import EpsilonPolicy, GreedyPolicy
 from rl.simulation import Simulation
 import numpy as np
 
@@ -16,9 +16,9 @@ td = TD(
     states=environment.states,
     td_lambda=0.5,
     learning_rate=0.01)
-greedy = Epsilon(Greedy(environment.get_followups, td))
+epsilon_greedy = EpsilonPolicy(GreedyPolicy(environment.get_followups, td))
 
-simulation = Simulation(environment, greedy, td)
+simulation = Simulation(environment, epsilon_greedy, td)
 
 for step in xrange(1, 1000):
   episode = simulation.run_episode()

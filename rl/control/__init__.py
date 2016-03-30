@@ -1,2 +1,2 @@
-from greedy import Greedy
-from epsilon import Epsilon
+from greedy_policy import GreedyPolicy
+from epsilon_policy import EpsilonPolicy
