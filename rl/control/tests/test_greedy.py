@@ -1,5 +1,5 @@
 import unittest
-from greedy import Greedy
+from ..greedy import Greedy
 
 
 class TestGreedy(unittest.TestCase):

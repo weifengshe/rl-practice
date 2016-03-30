@@ -1,8 +1,8 @@
-from gridworld import GridWorld
-from td import TD
-from td0 import TD0
-from greedy import Epsilon, Greedy
-from simulation import Simulation
+from rl.environment.gridworld import GridWorld
+from rl.prediction.td import TD
+from rl.prediction.td0 import TD0
+from rl.control.greedy import Epsilon, Greedy
+from rl.simulation.simulation import Simulation
 import numpy as np
 
 

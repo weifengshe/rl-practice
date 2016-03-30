@@ -1,5 +1,5 @@
 import unittest
-from gridworld import GridWorld
+from ..gridworld import GridWorld
 
 
 class TestGridWorld(unittest.TestCase):

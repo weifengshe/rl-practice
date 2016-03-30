@@ -1,5 +1,5 @@
 import unittest
-from td0 import TD0
+from ..td0 import TD0
 
 class TestTD0(unittest.TestCase):
   def setUp(self):
