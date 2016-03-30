@@ -25,12 +25,18 @@ class GridWorld(object):
     assert self.is_state(self.goal_state)
     self.start_episode()
 
+  @property
+  def state_actions(self):
+    return {state: self.actions for state in self.states}
+
+
   def start_episode(self):
     self.current_state = self.start_state
     self.step = 0
     assert self.is_state(self.current_state)
 
   def take_action(self, action):
+    assert not self.terminated
     (reward, new_state) = self.get_followup(self.current_state, action)
     self.current_state = new_state
     self.step += 1
@@ -54,7 +60,6 @@ class GridWorld(object):
       else:
         return self.step_reward
 
-    assert not self.terminated
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)

@@ -14,6 +14,11 @@ class GreedyPolicy:
       (action, reward, next_state) = followup
       return reward + self.state_values[next_state]
 
-    followups = self.environment.get_followups(state)
-    (action, _, _) = max(*followups, key=value)
+    (action, _, _) = max(*self.followups(state), key=value)
     return action
+
+  def followups(self, state):
+    return self.environment.get_followups(state)
+
+  def choices(self, state):
+    return [action for (action, _, _) in self.followups(state)]

@@ -19,6 +19,12 @@ class TestGridWorld(unittest.TestCase):
   def test_lists_all_possible_states(self):
     self.assertEqual(len(self.world.states), 9)
 
+  def test_lists_all_possible_state_action_pairs(self):
+    self.assertEqual(len(self.world.state_actions), 9)
+    actions = self.world.state_actions[0, 0]
+    self.assertEqual(sorted(actions),
+      sorted(['left', 'right', 'up', 'down']))
+
   def test_lists_all_followups(self):
     self.assertEqual(sorted(self.world.get_followups((1, 2))), [
       ('down', 9, (2, 2)),
