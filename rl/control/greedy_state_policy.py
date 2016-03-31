@@ -17,5 +17,5 @@ class GreedyStatePolicy:
   def followups(self, state):
     return self.environment.get_followups(state)
 
-  def choices(self, state):
+  def available_actions(self, state):
     return [action for (action, _, _) in self.followups(state)]

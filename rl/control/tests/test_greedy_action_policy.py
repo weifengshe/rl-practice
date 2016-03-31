@@ -28,5 +28,5 @@ class TestGreedyActionPolicy(unittest.TestCase):
     self.assertEqual(action, 'foo')
 
   def test_lists_all_available_actions(self):
-    self.assertEqual(set(self.greedy.choices('a')), set(['foo', 'bar']))
-    self.assertEqual(set(self.greedy.choices('b')), set(['foo', 'bar']))
+    self.assertEqual(set(self.greedy.available_actions('a')), set(['foo', 'bar']))
+    self.assertEqual(set(self.greedy.available_actions('b')), set(['foo', 'bar']))

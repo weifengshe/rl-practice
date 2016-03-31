@@ -14,4 +14,4 @@ class EpsilonPolicy:
     if random.random() > 1.0 / self.episode_count:
       return self.inner_policy.choose_action(state)
     else:
-      return random.choice(self.inner_policy.choices(state))
+      return random.choice(self.inner_policy.available_actions(state))
