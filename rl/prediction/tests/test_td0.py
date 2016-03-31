@@ -8,11 +8,11 @@ class TestTD0(unittest.TestCase):
         learning_rate=0.1)
 
   def test_initial_values_are_zero(self):
-    self.assertEqual(self.td['a'], 0)
-    self.assertEqual(self.td['b'], 0)
+    self.assertEqual(self.td.value('a'), 0)
+    self.assertEqual(self.td.value('b'), 0)
 
   def test_move_closer_to_given_reward(self):
-    self.assertEqual(self.td['a'], 0)
+    self.assertEqual(self.td.value('a'), 0)
 
     self.td.learn(
       state='a',
@@ -20,12 +20,12 @@ class TestTD0(unittest.TestCase):
       reward=3,
       new_state='b')
 
-    self.assertAlmostEqual(self.td['a'], 0.3)
+    self.assertAlmostEqual(self.td.value('a'), 0.3)
 
   def test_move_closer_to_follower_state_value(self):
     # given
     self.td.learn('b', 'foo', 100, 'b')
-    self.assertAlmostEqual(self.td['b'], 10.0)
+    self.assertAlmostEqual(self.td.value('b'), 10.0)
 
     # when
     self.td.learn(
@@ -35,4 +35,4 @@ class TestTD0(unittest.TestCase):
       new_state='b')
 
     # then
-    self.assertAlmostEqual(self.td['a'], 1.0)
+    self.assertAlmostEqual(self.td.value('a'), 1.0)
