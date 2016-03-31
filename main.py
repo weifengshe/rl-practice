@@ -15,13 +15,13 @@ environment = GridWorld(
 sarsa = Sarsa(
     state_actions=environment.state_actions,
     td_lambda=0.9,
-    learning_rate=0.01)
+    learning_rate=0.1)
 epsilon_greedy = EpsilonPolicy(GreedyActionPolicy(sarsa))
 sarsa.policy = epsilon_greedy
 
 simulation = Simulation(environment, epsilon_greedy, sarsa)
 
-for step in xrange(1, 10000):
+for step in xrange(1, 1000):
   episode = simulation.run_episode()
   if step % 100 == 0:
     print len(episode),

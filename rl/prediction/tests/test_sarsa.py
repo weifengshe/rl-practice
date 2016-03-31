@@ -15,9 +15,9 @@ class TestSarsa(unittest.TestCase):
         'a': 'to_b', 'b': 'to_a'})
 
   def test_initial_values_are_zero(self):
-    self.assertEqual(self.sarsa['a', 'to_a'], 0)
-    self.assertEqual(self.sarsa['a', 'to_b'], 0)
-    self.assertEqual(self.sarsa['b', 'to_a'], 0)
+    self.assertEqual(self.sarsa.value('a', 'to_a'), 0)
+    self.assertEqual(self.sarsa.value('a', 'to_b'), 0)
+    self.assertEqual(self.sarsa.value('b', 'to_a'), 0)
 
   def test_list_action_values_of_one_state(self):
     self.assertEqual(self.sarsa.action_values('a'), {'to_a': 0, 'to_b': 0})
@@ -34,7 +34,7 @@ class TestSarsa(unittest.TestCase):
     # eligibility = 0.5**0 = 1
     # change = 1/3 * 1 * 3 = 1
     # new value = 0 + 1 = 1
-    self.assertAlmostEqual(self.sarsa['a', 'to_b'], 1)
+    self.assertAlmostEqual(self.sarsa.value('a', 'to_b'), 1)
 
     self.sarsa.learn(
       state='b',
@@ -46,12 +46,12 @@ class TestSarsa(unittest.TestCase):
     # eligibility = 0.5**1 = 0.5
     # change = 1/3 * 0.5 * 12 = 2
     # new value = 1 + 2 = 3
-    self.assertAlmostEqual(self.sarsa['a', 'to_b'], 3)
+    self.assertAlmostEqual(self.sarsa.value('a', 'to_b'), 3)
 
     # eligibility = 0.5**0 = 1
     # change = 1/3 * 1 * 12 = 4
     # new value = 0 + 4 = 4
-    self.assertAlmostEqual(self.sarsa['b', 'to_a'], 4)
+    self.assertAlmostEqual(self.sarsa.value('b', 'to_a'), 4)
 
     self.sarsa.learn(
       state='a',
@@ -63,12 +63,12 @@ class TestSarsa(unittest.TestCase):
     # eligibility = 0.5**2 + 0.5**0 = 1.25
     # change = 1/3 * 1.25 * 24 = 10
     # new value = 3 + 10 = 13
-    self.assertAlmostEqual(self.sarsa['a', 'to_b'], 13)
+    self.assertAlmostEqual(self.sarsa.value('a', 'to_b'), 13)
 
     # eligibility = 0.5**1 = 0.5
     # change = 1/3 * 0.5 * 24 = 4
     # new value = 4 + 4 = 8
-    self.assertAlmostEqual(self.sarsa['b', 'to_a'], 8)
+    self.assertAlmostEqual(self.sarsa.value('b', 'to_a'), 8)
 
   def test_knows_max_action_values_per_state(self):
     self.sarsa.learn(

@@ -19,14 +19,10 @@ class Sarsa(object):
   def value(self, state, action):
     return self.__values[state][action]
 
-  def __getitem__(self, state_action):
-    (state, action) = state_action
-    return self.value(state, action)
-
   def learn(self, state, action, reward, new_state):
     assert self.policy is not None
     new_action = self.policy.choose_action(new_state)
-    td_error = reward + self[new_state, new_action] - self[state, action]
+    td_error = reward + self.__values[new_state][new_action] - self.__values[state][action]
 
     self.past_state_actions.append((state, action))
     for index, (past_state, past_action) in enumerate(reversed(self.past_state_actions)):
