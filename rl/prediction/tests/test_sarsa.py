@@ -20,8 +20,8 @@ class TestSarsa(unittest.TestCase):
     self.assertEqual(self.sarsa.value('b', 'to_a'), 0)
 
   def test_list_action_values_of_one_state(self):
-    self.assertEqual(self.sarsa.action_values('a'), {'to_a': 0, 'to_b': 0})
-    self.assertEqual(self.sarsa.action_values('b'), {'to_a': 0})
+    self.assertEqual(self.sarsa.values('a'), {'to_a': 0, 'to_b': 0})
+    self.assertEqual(self.sarsa.values('b'), {'to_a': 0})
 
   def test_broadcast_td_error_to_to_previous_state_actions(self):
     self.sarsa.learn(

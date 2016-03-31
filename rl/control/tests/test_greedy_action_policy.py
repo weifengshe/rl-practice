@@ -6,7 +6,7 @@ class ValueStub(object):
   def __init__(self, state_action_values):
     self.state_action_values = state_action_values
 
-  def action_values(self, state):
+  def values(self, state):
     return self.state_action_values[state]
 
 

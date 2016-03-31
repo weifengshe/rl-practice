@@ -23,7 +23,7 @@ simulation = Simulation(environment, epsilon_greedy, sarsa)
 
 for step in xrange(1, 1000):
   episode = simulation.run_episode()
-  if step % 100 == 0:
+  if step % 10 == 0:
     print len(episode),
 print
 
@@ -38,4 +38,4 @@ def print_values(values):
   print array
 
 print_values(sarsa.max_values)
-print sarsa.action_values((0,0))
+print sarsa.values((0,0))

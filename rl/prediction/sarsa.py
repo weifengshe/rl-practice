@@ -13,7 +13,7 @@ class Sarsa(object):
   def start_episode(self):
     self.past_state_actions = []
 
-  def action_values(self, state):
+  def values(self, state):
     return self.__values[state]
 
   def value(self, state, action):
