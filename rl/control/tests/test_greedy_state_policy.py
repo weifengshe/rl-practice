@@ -9,6 +9,13 @@ class EnvironmentStub(object):
   def get_followups(self, state):
     return self.followup_dictionary[state]
 
+class StateValuesStub(object):
+  def __init__(self, state_values):
+    self.state_values = state_values
+
+  def value(self, state):
+    return self.state_values[state]
+
 
 class TestGreedyStatePolicy(unittest.TestCase):
   def setUp(self):
@@ -19,10 +26,10 @@ class TestGreedyStatePolicy(unittest.TestCase):
             ('to_b', -100, 'b')]
     })
 
-    state_values = {
+    state_values = StateValuesStub({
       'a': 1,
       'b': 10
-    }
+    })
 
     self.greedy = GreedyStatePolicy(
         environment=environment,

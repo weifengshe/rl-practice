@@ -8,11 +8,11 @@ class TD(object):
   def start_episode(self):
     self.past_states = []
 
-  def __getitem__(self, state):
+  def value(self, state):
     return self.values[state]
 
   def learn(self, state, action, reward, new_state):
-    td_error = reward + self[new_state] - self[state]
+    td_error = reward + self.values[new_state] - self.values[state]
 
     self.past_states.append(state)
     for index, past_state in enumerate(reversed(self.past_states)):
