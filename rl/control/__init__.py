@@ -1,3 +1,3 @@
-from greedy_policy import GreedyPolicy
+from greedy_state_policy import GreedyStatePolicy
 from greedy_action_policy import GreedyActionPolicy
 from epsilon_policy import EpsilonPolicy

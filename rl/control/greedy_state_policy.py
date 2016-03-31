@@ -1,4 +1,4 @@
-class GreedyPolicy:
+class GreedyStatePolicy:
   def __init__(self, environment, state_values):
     self.environment = environment
     self.state_values = state_values

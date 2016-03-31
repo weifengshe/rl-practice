@@ -1,5 +1,5 @@
 import unittest
-from ..greedy_policy import GreedyPolicy
+from ..greedy_state_policy import GreedyStatePolicy
 
 
 class EnvironmentStub(object):
@@ -10,7 +10,7 @@ class EnvironmentStub(object):
     return self.followup_dictionary[state]
 
 
-class TestGreedyPolicy(unittest.TestCase):
+class TestGreedyStatePolicy(unittest.TestCase):
   def setUp(self):
     environment = EnvironmentStub({
       'a': [('to_a', 0, 'a'),
@@ -24,7 +24,7 @@ class TestGreedyPolicy(unittest.TestCase):
       'b': 10
     }
 
-    self.greedy = GreedyPolicy(
+    self.greedy = GreedyStatePolicy(
         environment=environment,
         state_values=state_values)
 
