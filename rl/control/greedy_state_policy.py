@@ -1,4 +1,9 @@
 class GreedyStatePolicy:
+  """
+  Greedy policy with known state transition matrix and
+  state value estimates.
+  """
+
   def __init__(self, environment, state_values):
     self.environment = environment
     self.state_values = state_values
