@@ -34,7 +34,7 @@ class TestGridWorld(unittest.TestCase):
 
   def test_move(self):
     self.assertEqual(self.world.current_state, (1, 1))
-    
+
     _, new_state = self.world.take_action('up')
     self.assertEqual(new_state, (0, 1))
 
@@ -59,6 +59,26 @@ class TestGridWorld(unittest.TestCase):
       self.world = GridWorld((3, 3), state, (1, 1))
       _, new_state = self.world.take_action(action)
       self.assertEqual(state, new_state)
+
+  def test_cannot_move_to_forbidden_states(self):
+    world = GridWorld(
+      dimensions = (3, 3),
+      start_state = (0, 0),
+      goal_state = (2, 2),
+      forbidden_states = [(1, 0), (1, 1)])
+
+    _, new_state = world.take_action('down')
+    self.assertEqual(new_state, (0, 0))
+
+    world.take_action('right')
+    _, new_state = world.take_action('down')
+    self.assertEqual(new_state, (0, 1))
+
+    world.take_action('right')
+    world.take_action('down')
+    _, new_state = world.take_action('down')
+    self.assertEqual(new_state, (2, 2))
+
 
   def test_every_step_is_penalized(self):
     reward, _ = self.world.take_action('up')

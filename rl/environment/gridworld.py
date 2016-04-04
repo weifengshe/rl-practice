@@ -13,16 +13,20 @@ class GridWorld(object):
   coordinate_updates = [direction for (_, direction) in actions_and_updates]
 
   def __init__(self, dimensions, start_state, goal_state,
+      forbidden_states = [],
       goal_reward = 10, step_reward = -1, max_steps = 100):
     self.dimensions = dimensions
     self.states = set(np.ndindex(dimensions))
     self.start_state = start_state
     self.goal_state = goal_state
+    self.forbidden_states = forbidden_states
     self.goal_reward = goal_reward
     self.step_reward = step_reward
     self.max_steps = max_steps
     assert self.is_state(self.start_state)
     assert self.is_state(self.goal_state)
+    assert all(self.is_state(state) for state in self.forbidden_states)
+    assert self.start_state not in self.forbidden_states
     self.start_episode()
 
   @property
@@ -51,6 +55,9 @@ class GridWorld(object):
         for action in self.actions]
 
   def get_followup(self, state, action):
+    def keep_out_of_forbidden_states(new_state):
+      return state if new_state in self.forbidden_states else new_state
+
     def keep_within_bounds(coordinate, dimension_size):
       return max(0, min(coordinate, dimension_size - 1))
 
@@ -63,7 +70,7 @@ class GridWorld(object):
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, state, update)
     bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
-    new_state = tuple(bounded_coords)
+    new_state = keep_out_of_forbidden_states(tuple(bounded_coords))
     assert self.is_state(new_state)
     return reward(new_state), new_state
 
