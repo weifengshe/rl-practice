@@ -3,6 +3,7 @@ from rl.prediction import Sarsa
 from rl.control import EpsilonPolicy, GreedyActionPolicy
 from rl.simulation import Simulation
 import numpy as np
+import math
 
 
 environment = GridWorld(
@@ -17,7 +18,7 @@ sarsa = Sarsa(
     state_actions=environment.state_actions,
     td_lambda=0.8,
     learning_rate=0.05)
-epsilon_greedy = EpsilonPolicy(GreedyActionPolicy(sarsa))
+epsilon_greedy = EpsilonPolicy(GreedyActionPolicy(sarsa), "inverse_sqrt_decay")
 sarsa.policy = epsilon_greedy
 
 simulation = Simulation(environment, epsilon_greedy, sarsa)
