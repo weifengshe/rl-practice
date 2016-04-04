@@ -20,8 +20,8 @@ class Sarsa(object):
     return self.__values[state][action]
 
   def learn(self, state, action, reward, new_state):
-    assert self.policy is not None
-    new_action = self.policy.choose_action(new_state)
+    assert self.target_policy is not None
+    new_action = self.target_policy.choose_action(new_state)
     td_error = reward + self.__values[new_state][new_action] - self.__values[state][action]
 
     self.past_state_actions.append((state, action))

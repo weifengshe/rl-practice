@@ -11,7 +11,7 @@ class TestSarsa(unittest.TestCase):
         td_lambda=0.5,
         learning_rate=1.0/3)
 
-    self.sarsa.policy = PolicyStub({
+    self.sarsa.target_policy = PolicyStub({
         'a': 'to_b', 'b': 'to_a'})
 
   def test_initial_values_are_zero(self):
