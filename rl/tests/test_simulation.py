@@ -1,6 +1,6 @@
 import unittest
 from ..simulation import Simulation
-from rl.environment.gridworld import GridWorld
+from rl.environments.gridworld import GridWorld
 
 class TestSimulation(unittest.TestCase):
   def setUp(self):

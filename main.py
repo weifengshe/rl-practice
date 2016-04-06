@@ -1,7 +1,7 @@
-from rl.environment import GridWorld, Cliff
-from rl.prediction import Sarsa, TD
-from rl.control import EpsilonPolicy, GreedyActionPolicy, GreedyAfterstatePolicy
-from rl.simulation import Simulation
+from rl.environments import GridWorld, Cliff
+from rl.predictors import Sarsa, TD
+from rl.policies import EpsilonPolicy, GreedyActionPolicy, GreedyAfterstatePolicy
+from rl import Simulation
 import numpy as np
 import math
 
