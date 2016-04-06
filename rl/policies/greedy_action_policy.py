@@ -15,6 +15,3 @@ class GreedyActionPolicy:
   def choose_action(self, state):
     action_values = self.state_action_values.values(state)
     return max(action_values.iteritems(), key=itemgetter(1))[0]
-
-  def available_actions(self, state):
-    return self.state_action_values.values(state).keys()

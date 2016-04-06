@@ -11,7 +11,8 @@ class EpsilonPolicy:
   - "inverse sqrt decay" for the inverse of square root of current episode number
   - A function taking the current episode number as parameter
   """
-  def __init__(self, inner_policy, epsilon = "inverse_decay"):
+  def __init__(self, actions, inner_policy, epsilon = "inverse_decay"):
+    self.actions = actions
     self.inner_policy = inner_policy
     self.episode_count = 0
 
@@ -32,4 +33,4 @@ class EpsilonPolicy:
     if random.random() > self.epsilon(self.episode_count):
       return self.inner_policy.choose_action(state)
     else:
-      return random.choice(self.inner_policy.available_actions(state))
+      return random.choice(self.actions)

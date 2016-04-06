@@ -8,8 +8,9 @@ class TDAgent(object):
         td_lambda=0.8,
         learning_rate=0.05)
     self.policy = EpsilonPolicy(
-        GreedyAfterstatePolicy(environment, self.predictor),
-        lambda k: k**(-0.25))
+        actions=environment.actions,
+        inner_policy=GreedyAfterstatePolicy(environment, self.predictor),
+        epsilon=lambda k: k**(-0.25))
 
   def start_episode(self):
     self.predictor.start_episode()

@@ -8,8 +8,10 @@ class QAgent(object):
         td_lambda=0,
         learning_rate=0.05)
     greedy_policy = GreedyActionPolicy(self.predictor)
-    self.policy = EpsilonPolicy(greedy_policy,
-        lambda k: k**(-0.25))
+    self.policy = EpsilonPolicy(
+        actions=environment.actions,
+        inner_policy=greedy_policy,
+        epsilon=lambda k: k**(-0.25))
     self.predictor.target_policy = greedy_policy
 
   def start_episode(self):

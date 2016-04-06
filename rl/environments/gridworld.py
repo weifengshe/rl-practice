@@ -38,7 +38,6 @@ class GridWorld(object):
   def state_actions(self):
     return {state: self.actions for state in self.states}
 
-
   def start_episode(self):
     self.current_state = self.start_state
     self.step = 0

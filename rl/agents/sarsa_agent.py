@@ -8,8 +8,9 @@ class SarsaAgent(object):
         td_lambda=0.8,
         learning_rate=0.05)
     self.policy = EpsilonPolicy(
-        GreedyActionPolicy(self.predictor),
-        lambda k: k**(-0.25))
+        actions=environment.actions,
+        inner_policy=GreedyActionPolicy(self.predictor),
+        epsilon=lambda k: k**(-0.25))
     self.predictor.target_policy = self.policy
 
   def start_episode(self):
