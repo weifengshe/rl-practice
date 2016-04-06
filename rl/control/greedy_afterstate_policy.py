@@ -1,7 +1,6 @@
-class GreedyStatePolicy:
+class GreedyAfterstatePolicy:
   """
-  Greedy policy with known state transition matrix and
-  state value estimates.
+  Greedy policy with known afterstates and state value estimates.
   """
 
   def __init__(self, environment, state_values):
