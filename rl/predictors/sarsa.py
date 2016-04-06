@@ -28,10 +28,3 @@ class Sarsa(object):
     for index, (past_state, past_action) in enumerate(reversed(self.past_state_actions)):
       self.__values[past_state][past_action] += \
           self.learning_rate * (self.td_lambda**index) * td_error
-
-  @property
-  def max_values(self):
-    return {
-        state: max(self.__values[state].values())
-        for state in self.__values
-      }

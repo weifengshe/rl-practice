@@ -21,6 +21,5 @@ class TDAgent(object):
   def learn(self, state, action, reward, new_state):
     return self.predictor.learn(state, action, reward, new_state)
 
-  @property
-  def state_value_estimates(self):
-    return self.predictor.values
+  def state_value_estimate(self, state):
+    return self.predictor.value(state)

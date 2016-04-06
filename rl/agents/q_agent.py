@@ -22,6 +22,6 @@ class QAgent(object):
   def learn(self, state, action, reward, new_state):
     return self.predictor.learn(state, action, reward, new_state)
 
-  @property
-  def state_value_estimates(self):
-    return self.predictor.max_values
+  def state_value_estimate(self, state):
+    action = self.policy.choose_action(state)
+    return self.predictor.value(state, action)
