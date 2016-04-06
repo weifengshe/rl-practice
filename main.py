@@ -1,5 +1,5 @@
 from rl.environments import GridWorld, Cliff
-from rl.agents import SarsaAgent, TDAgent
+from rl.agents import SarsaAgent, TDAgent, QAgent
 from rl import Simulation
 import numpy as np
 import math
@@ -15,12 +15,13 @@ def print_state_values(values):
   print array
 
 
-environment = GridWorld()
-# environment = Cliff()
+# environment = GridWorld()
+environment = Cliff()
 
 agents = [
+  TDAgent(environment),
   SarsaAgent(environment),
-  TDAgent(environment)]
+  QAgent(environment)]
 
 for agent in agents:
   print type(agent)
@@ -29,8 +30,8 @@ for agent in agents:
 
   for step in xrange(1, 10000):
     episode = simulation.run_episode()
-    if step % 10 == 0:
-      print len(episode),
+    # if step % 10 == 0:
+    #   print len(episode),
   print
 
   print_state_values(agent.state_value_estimates)
