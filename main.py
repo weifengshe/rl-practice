@@ -16,5 +16,7 @@ for agent in agents:
   simulation = Simulation(environment, agent)
   for step in xrange(1, 1000):
     episode = simulation.run_episode()
-  util.print_grid(agent.state_value_estimates)
+
+  util.print_state_value_estimates(agent)
+  util.print_state_actions(agent)
   print
