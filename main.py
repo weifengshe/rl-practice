@@ -1,39 +1,11 @@
 from rl.environments import GridWorld, Cliff
-from rl.predictors import Sarsa, TD
-from rl.policies import EpsilonPolicy, GreedyActionPolicy, GreedyAfterstatePolicy
+from rl.agents import SarsaAgent, TDAgent
 from rl import Simulation
 import numpy as np
 import math
 
-
-environment = GridWorld()
-# environment = Cliff()
-
-td = TD(
-    states=environment.states,
-    td_lambda=0.8,
-    learning_rate=0.05)
-epsilon_greedy = EpsilonPolicy(GreedyAfterstatePolicy(environment, td), lambda k: k**(-0.25))
-simulation = Simulation(environment, epsilon_greedy, td)
-
-# sarsa = Sarsa(
-#     state_actions=environment.state_actions,
-#     td_lambda=0,
-#     learning_rate=0.05)
-# greedy = GreedyActionPolicy(sarsa)
-# epsilon_greedy = EpsilonPolicy(greedy, lambda k: 0.1)
-# sarsa.target_policy = greedy
-# simulation = Simulation(environment, epsilon_greedy, sarsa)
-
-
-for step in xrange(1, 10000):
-  episode = simulation.run_episode()
-  if step % 10 == 0:
-    print len(episode),
-print
-
 np.set_printoptions(precision=1, suppress=True, linewidth=200)
-def print_values(values):
+def print_state_values(values):
   coords = values.keys()
   (xs, ys) = zip(*coords)
   dimensions = (max(*xs) + 1, max(*ys) + 1)
@@ -42,6 +14,24 @@ def print_values(values):
     array[coords] = values[coords]
   print array
 
-print_values(td.values)
-# print_values(sarsa.max_values)
-# print sarsa.values((0,0))
+
+environment = GridWorld()
+# environment = Cliff()
+
+agents = [
+  SarsaAgent(environment),
+  TDAgent(environment)]
+
+for agent in agents:
+  print type(agent)
+
+  simulation = Simulation(environment, agent)
+
+  for step in xrange(1, 10000):
+    episode = simulation.run_episode()
+    if step % 10 == 0:
+      print len(episode),
+  print
+
+  print_state_values(agent.state_value_estimates)
+  print

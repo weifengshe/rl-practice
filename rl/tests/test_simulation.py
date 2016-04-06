@@ -11,19 +11,19 @@ class TestSimulation(unittest.TestCase):
       goal_reward = 10,
       step_reward = -1)
 
-    self.stupid_policy = PolicyStub({
+    self.stupid_agent = AgentStub({
         (1, 1): 'left',
         (1, 0): 'left'
       })
 
-    self.smart_policy = PolicyStub({
+    self.smart_agent = AgentStub({
         (1, 1): 'right',
         (1, 2): 'down'
       })
 
 
   def test_policy_run_for_max_steps(self):
-    simulation = Simulation(self.environment, self.stupid_policy)
+    simulation = Simulation(self.environment, self.stupid_agent)
     history = simulation.run_episode()
 
     self.assertEqual(len(history), 101)
@@ -33,7 +33,7 @@ class TestSimulation(unittest.TestCase):
     self.assertEqual(history[-1], ((1, 0), None, None))
 
   def test_policy_run_finding_goal(self):
-    simulation = Simulation(self.environment, self.smart_policy)
+    simulation = Simulation(self.environment, self.smart_agent)
     history = simulation.run_episode()
 
     self.assertEqual(history, [
@@ -42,18 +42,18 @@ class TestSimulation(unittest.TestCase):
         ((2, 2), None, None)])
 
   def test_policy_run_gives_feedback(self):
-    learner = LearnerStub()
-    simulation = Simulation(self.environment, self.smart_policy, learner)
+    simulation = Simulation(self.environment, self.smart_agent)
     simulation.run_episode()
 
-    self.assertEqual(learner.accumulator, [
+    self.assertEqual(self.smart_agent.experience, [
         ((1, 1), 'right', -1, (1, 2)),
         ((1, 2), 'down', 9, (2, 2))])
 
 
-class PolicyStub(object):
+class AgentStub(object):
   def __init__(self, action_lookup):
     self.action_lookup = action_lookup
+    self.experience = []
 
   def choose_action(self, state):
     return self.action_lookup[state]
@@ -61,12 +61,5 @@ class PolicyStub(object):
   def start_episode(self):
     pass
 
-class LearnerStub(object):
-  def __init__(self):
-    self.accumulator = []
-
   def learn(self, state, action, reward, new_state):
-    self.accumulator.append((state, action, reward, new_state))
-
-  def start_episode(self):
-    pass
+    self.experience.append((state, action, reward, new_state))
