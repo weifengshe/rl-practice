@@ -63,7 +63,7 @@ class TestCliff(unittest.TestCase):
     ]
 
     for action, state in actions_on_boundaries:
-      self.world = Cliff((3, 3), state, (1, 1))
+      self.world = Cliff((3, 3), state, (1, 1), [])
       _, new_state = self.world.take_action(action)
       self.assertEqual(state, new_state)
 

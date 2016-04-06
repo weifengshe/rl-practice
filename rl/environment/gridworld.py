@@ -12,9 +12,14 @@ class GridWorld(object):
   actions = [name for (name, _) in actions_and_updates]
   coordinate_updates = [direction for (_, direction) in actions_and_updates]
 
-  def __init__(self, dimensions, start_state, goal_state,
+  def __init__(self,
+      dimensions=(5, 5),
+      start_state=(0, 0),
+      goal_state=(4, 4),
       forbidden_states = [],
-      goal_reward = 10, step_reward = -1, max_steps = 100):
+      goal_reward = 10,
+      step_reward = -1,
+      max_steps = 100):
     self.dimensions = dimensions
     self.states = set(np.ndindex(dimensions))
     self.start_state = start_state

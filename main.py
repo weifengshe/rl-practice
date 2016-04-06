@@ -6,22 +6,8 @@ import numpy as np
 import math
 
 
-# environment = GridWorld(
-#     dimensions = (10, 10),
-#     start_state = (1, 0),
-#     goal_state = (9, 9),
-#     forbidden_states = [(1, 1), (2, 1), (3, 1), (4, 1), (5, 3), (6, 3)],
-#     goal_reward = 10,
-#     step_reward = -1,
-#     max_steps = 1000)
-environment = Cliff(
-  dimensions = (4, 12),
-  start_state = (3, 0),
-  goal_state = (3, 11),
-  cliff_states = [(3, x) for x in xrange(1, 11)],
-  cliff_reward = -100,
-  step_reward = -1,
-  max_steps = 100)
+environment = GridWorld()
+# environment = Cliff()
 
 td = TD(
     states=environment.states,

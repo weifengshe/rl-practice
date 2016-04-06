@@ -12,9 +12,14 @@ class Cliff(object):
   actions = [name for (name, _) in actions_and_updates]
   coordinate_updates = [direction for (_, direction) in actions_and_updates]
 
-  def __init__(self, dimensions, start_state, goal_state,
-      cliff_states = [],
-      cliff_reward = -100, step_reward = -1, max_steps = 100):
+  def __init__(self,
+      dimensions=(4, 12),
+      start_state=(3, 0),
+      goal_state=(3, 11),
+      cliff_states = [(3, x) for x in xrange(1, 11)],
+      cliff_reward = -100,
+      step_reward = -1,
+      max_steps = 100):
     self.dimensions = dimensions
     self.states = set(np.ndindex(dimensions))
     self.start_state = start_state

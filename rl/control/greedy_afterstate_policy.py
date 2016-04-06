@@ -18,8 +18,8 @@ class GreedyAfterstatePolicy:
     (action, _, _) = max(*self.followups(state), key=value)
     return action
 
-  def followups(self, state):
-    return self.environment.get_followups(state)
-
   def available_actions(self, state):
     return [action for (action, _, _) in self.followups(state)]
+
+  def followups(self, state):
+    return self.environment.get_followups(state)
