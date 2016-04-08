@@ -70,14 +70,6 @@ class TestSarsa(unittest.TestCase):
     # new value = 4 + 4 = 8
     self.assertAlmostEqual(self.sarsa.value('b', 'to_a'), 8)
 
-  def test_knows_max_action_values_per_state(self):
-    self.sarsa.learn(
-      state='a',
-      action='to_b',
-      reward=3,
-      new_state='b')
-    self.assertAlmostEqual(self.sarsa.max_values, {'a': 1, 'b': 0})
-
 
 class PolicyStub(object):
   def __init__(self, action_lookup):
