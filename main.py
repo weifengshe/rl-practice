@@ -1,22 +1,20 @@
-from rl.environments import GridWorld, Cliff
-from rl.agents import SarsaAgent, TDAgent, QAgent
+from rl.environments import Cliff
+from rl.agents import TDAgent
 from rl import Simulation
 from rl import util
 
-# environment = GridWorld()
 environment = Cliff()
 
-agents = [
-  TDAgent(environment),
-  SarsaAgent(environment),
-  QAgent(environment)]
+agent = TDAgent(environment, exploration=True)
 
-for agent in agents:
-  print type(agent).__name__
-  simulation = Simulation(environment, agent)
-  for step in xrange(1, 1000):
-    episode = simulation.run_episode()
+simulation = Simulation(environment, agent)
+for step in xrange(1, 1000):
+  episode = simulation.run_episode()
 
-  util.print_state_value_estimates(environment, agent)
-  util.print_state_actions(environment, agent)
-  print
+print "State value estimates"
+util.print_state_value_estimates(environment, agent)
+
+print
+print "Sampled actions on each state"
+agent.exploration = False
+util.print_state_actions(environment, agent)
