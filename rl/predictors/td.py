@@ -1,18 +1,3 @@
-class _LookupTable(object):
-  def __init__(self, states, learning_rate):
-    self.values = dict.fromkeys(states, 0)
-    self.learning_rate = learning_rate
-
-  def update(self, state, change):
-    self.values[state] += self.learning_rate * change
-
-  def __getitem__(self, state):
-    return self.values[state]
-
-  def keys(self):
-    return self.values.keys()
-
-
 class TD(object):
   def __init__(self, states, td_lambda, learning_rate, approximator=None):
     if approximator is None:
@@ -34,3 +19,18 @@ class TD(object):
     self.past_states.append(state)
     for index, past_state in enumerate(reversed(self.past_states)):
       self.approximator.update(past_state, (self.td_lambda**index) * td_error)
+
+
+class _LookupTable(object):
+  def __init__(self, states, learning_rate):
+    self.values = dict.fromkeys(states, 0)
+    self.learning_rate = learning_rate
+
+  def update(self, state, change):
+    self.values[state] += self.learning_rate * change
+
+  def __getitem__(self, state):
+    return self.values[state]
+
+  def keys(self):
+    return self.values.keys()
