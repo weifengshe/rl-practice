@@ -16,31 +16,9 @@ Install numpy with
 pip install numpy
 ```
 
-## Environment description
+## Running the exercises
 
-The cliff world looks like this:
-
-```
-+-------------+
-|.............|
-|.............|
-|.............|
-|SxxxxxxxxxxxE|
-+-------------+
-```
-
-where:
-
-- `S` is the start state,
-- `E` is the end state,
-- `x` is a canyon
-- `|` and `-` are walls
-
-Agent can walk to any of the four main directions on any state. Walking to a wall retains the current state. Walking to a canyon causes reward -100 and the agent to teleport to the start state. All other steps cause reward -1.
-
-## Exercise for lecture 5: TD-learning for control
-
-Run the program with `python main.py` from the root directory. You will see output similar to this:
+Run the exercise file with python. E.g. `python exercise5.py`. You will see output similar to this:
 
 ```
 State value estimates
@@ -56,9 +34,5 @@ Sampled actions on each state
  ['r' 'l' 'l' 'l' 'r' 'l' 'u' 'r' 'l' 'l' 'l' 'u']]
 ```
 
-Edit the file [rl/agents/td_agent.py](rl/agents/td_agent.py) and implement
-
-- TD(0) or TD(λ) learning in the `learn` method.
-- 𝜀-greedy policy in the `choose_action` method.
-
-See if you can teach the agent to find the optimal route.
+Edit the exercise file to implement the missing parts and run the program
+again. Repeat until you are happy with the results.

@@ -1,4 +1,56 @@
+from rl.environments import Cliff
+from rl import Simulation
+from rl import util
 import random
+
+######
+# Exercise: TD-learning for control
+#
+# Look at the code in the TDAgent class below and implement
+# the missing parts. Can you teach the agent to find
+# the optimal route?
+#
+#
+# The cliff world looks like this:
+#
+# ```
+# +-------------+
+# |.............|
+# |.............|
+# |.............|
+# |SxxxxxxxxxxxE|
+# +-------------+
+# ```
+#
+# where:
+#
+# - `S` is the start state,
+# - `E` is the end state,
+# - `x` is a canyon
+# - `|` and `-` are walls
+#
+# Agent can walk to any of the four main directions on any state.
+# Walking to a wall retains the current state. Walking to a canyon
+# causes reward -100 and the agent to teleport to the start state.
+# All other steps cause reward -1.
+
+def run_exercise():
+  environment = Cliff()
+
+  agent = TDAgent(environment, exploration=True)
+
+  simulation = Simulation(environment, agent)
+  for step in xrange(1, 1000):
+    episode = simulation.run_episode()
+
+  print "State value estimates"
+  util.print_state_value_estimates(environment, agent)
+
+  print
+  print "Sampled actions on each state"
+  agent.exploration = False
+  util.print_state_actions(environment, agent)
+
 
 class TDAgent(object):
   def __init__(self, environment, exploration=True):
@@ -65,3 +117,6 @@ class TDAgent(object):
 
   def state_value_estimate(self, state):
     return self.state_values[state]
+
+
+run_exercise()
