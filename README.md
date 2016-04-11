@@ -39,7 +39,7 @@ again. Repeat until you are happy with the results.
 
 ## Exercises
 
-The numbering of exercises follows David Silver's Reinforcement Learning lectures.
+The numbering of exercises follows the lectures of [David Silver's Reinforcement Learning course](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html).
 
 ### Lecture 3: Planning by Dynamic Programming
 
