@@ -18,7 +18,7 @@ pip install numpy
 
 ## Running the exercises
 
-Run the exercise file with python. E.g. `python exercise5.py`. You will see output similar to this:
+Run the exercise file with python. E.g. `python exercise5a.py`. You will see output similar to this:
 
 ```
 State value estimates
