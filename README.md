@@ -60,6 +60,6 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 
 Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/control.pdf) from David Silver's course.
 
-- TBD: [exercise5a.py](exercise5a.py): TD control with afterstates
-- TBD: [exercise5b.py](exercise5b.py): Sarsa
+- [exercise5a.py](exercise5a.py): TD control with afterstates
+- [exercise5b.py](exercise5b.py): Sarsa
 - TBD: Q-learning
