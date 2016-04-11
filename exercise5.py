@@ -97,7 +97,7 @@ class TDAgent(object):
     #### TODO:
     # Change this function to implement TD(0) or TD(lambda) using
     #
-    # - reversed(self.episode_state_history[index]) to iterate
+    # - reversed(self.episode_state_history) to iterate
     #   over past states in reverse order (if doing TD(lambda)).
     # - self.state_values[state] to get and update the values of states
     # - self.td_lambda for the lambda value
