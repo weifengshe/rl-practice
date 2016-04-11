@@ -43,7 +43,7 @@ def run_exercise():
   for step in xrange(1, 1000):
     episode = simulation.run_episode()
 
-  print "State value estimates"
+  print "Estimated max action value of each state"
   util.print_state_value_estimates(environment, agent)
 
   print
@@ -77,26 +77,27 @@ class SarsaAgent(object):
     self.episode_state_action_history = []
 
   def choose_action(self, state):
-    # Keep these two lines unchanged.
-    self.episode_state_action_history.append((state, action))
-    epsilon = self.epsilon(len(self.episode_state_action_history))
+    epsilon = self.epsilon(len(self.episode_state_action_history) + 1)
 
     #### TODO:
     # Change this function to implement an epsilon-greedy policy using
     #
     # - self.state_action_values[state][action] to get the
-    #   values of state-action pairs
+    #   state-action value estimates
     # - epsilon for the current epsilon value
     #
     # You can assume that discount factor is 1.
-    return random.choice(self.actions)
+
+    action = random.choice(self.actions)
+    self.episode_state_action_history.append((state, action))
+    return action
 
   def learn(self, state, action, reward, new_state):
     #### TODO:
-    # Change this function to implement TD(0) or TD(lambda) using
+    # Change this function to implement Sarsa(0) or Sarsa(lambda) using
     #
     # - reversed(self.episode_state_action_history) to iterate
-    #   over past states in reverse order (if doing TD(lambda)).
+    #   over past states in reverse order (if doing Sarsa(lambda)).
     # - self.state_action_values[state][action] to get and
     #   update the state-action value estimates
     # - self.sarsa_lambda for the lambda value
@@ -115,7 +116,7 @@ class SarsaAgent(object):
       return 0
 
   def state_value_estimate(self, state):
-    return self.state_values[state][self.choose_action(state)]
+    return self.state_action_values[state][self.choose_action(state)]
 
 
 run_exercise()
