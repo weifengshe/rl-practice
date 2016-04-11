@@ -54,7 +54,7 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/MC-TD.pdf) from David Silver's course.
 
 - TBD: Monte-carlo policy evaluation
-- TBD: TD evaluation
+- [exercise4b.py](exercise4b.py): TD evaluation
 
 ### Lecture 5: Model-Free Control
 
