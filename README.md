@@ -62,4 +62,4 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 
 - [exercise5a.py](exercise5a.py): TD control with afterstates
 - [exercise5b.py](exercise5b.py): Sarsa
-- TBD: Q-learning
+- [exercise5c.py](exercise5c.py): Q-learning
