@@ -38,6 +38,7 @@ def run_exercise():
   util.print_state_value_estimates(environment, value_iteration)
 
   #### TODO extra:
+  #### Print the optimal policy.
   #### Uncomment the following three lines and implement
   #### ValueIteartion.choose_action function.
   # print
@@ -75,8 +76,8 @@ class ValueIteration(object):
 
   def choose_action(self, state):
     #### TODO extra:
-    # Implement this function to return the optimal action
-    # based on the state values.
+    # To print out the optimal policy, implement this function
+    # so that it returns the optimal action based on the state values.
     return '-'
 
 
