@@ -33,6 +33,7 @@ def run_exercise():
   environment = GridWorld(
     dimensions=(4, 4),
     end_states=[(0, 0), (3, 3)],
+    nonstates=[],
     state_rewards={},
     step_reward=-1
   )

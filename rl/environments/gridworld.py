@@ -16,22 +16,20 @@ class GridWorld(object):
       dimensions=(3, 4),
       start_state=(0, 0),
       end_states=[(0, 3), (1, 3)],
-      forbidden_states = [(1, 1)],
+      nonstates = [(1, 1)],
       state_rewards = {(0, 3): 1, (1, 3): -1},
       step_reward = -0.1,
       max_steps = 100):
     self.dimensions = dimensions
-    self.states = set(np.ndindex(dimensions))
+    self.states = set(np.ndindex(dimensions)).difference(set(nonstates))
     self.start_state = start_state
     self.end_states = end_states
-    self.forbidden_states = forbidden_states
     self.state_rewards = state_rewards
     self.step_reward = step_reward
     self.max_steps = max_steps
     assert self.is_state(self.start_state)
     assert all(self.is_state(state) for state in self.end_states)
-    assert all(self.is_state(state) for state in self.forbidden_states)
-    assert self.start_state not in self.forbidden_states
+    assert all(not self.is_state(state) for state in nonstates)
     self.start_episode()
 
   @property
@@ -62,19 +60,15 @@ class GridWorld(object):
           for action in self.actions]
 
   def get_followup(self, state, action):
-    def keep_out_of_forbidden_states(new_state):
-      return state if new_state in self.forbidden_states else new_state
-
-    def keep_within_bounds(coordinate, dimension_size):
-      return max(0, min(coordinate, dimension_size - 1))
+    def keep_within_states(new_state):
+      return new_state if self.is_state(new_state) else state
 
     def reward(new_state):
       return self.step_reward + self.state_rewards.get(new_state, 0)
 
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, state, update)
-    bounded_coords = map(keep_within_bounds, updated_coords, self.dimensions)
-    new_state = keep_out_of_forbidden_states(tuple(bounded_coords))
+    new_state = keep_within_states(tuple(updated_coords))
     assert self.is_state(new_state)
     return reward(new_state), new_state
 

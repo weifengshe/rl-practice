@@ -7,7 +7,7 @@ class TestGridWorld(unittest.TestCase):
     self.world = GridWorld(
       dimensions = (3, 3),
       start_state = (1, 1),
-      forbidden_states = [],
+      nonstates = [],
       end_states = [(2, 2)],
       state_rewards = {(0, 1): 10, (0, 0): 15},
       step_reward = -1,
@@ -25,13 +25,6 @@ class TestGridWorld(unittest.TestCase):
     actions = self.world.state_actions[0, 0]
     self.assertEqual(sorted(actions),
       sorted(['left', 'right', 'up', 'down']))
-
-  def test_lists_all_followups(self):
-    self.assertEqual(sorted(self.world.get_followups((0, 1))), [
-      ('down', -1, (1, 1)),
-      ('left', 14, (0, 0)),
-      ('right', -1, (0, 2)),
-      ('up', 9, (0, 1))])
 
   def test_move(self):
     self.assertEqual(self.world.current_state, (1, 1))
@@ -57,16 +50,20 @@ class TestGridWorld(unittest.TestCase):
     ]
 
     for action, state in actions_on_boundaries:
-      self.world = GridWorld((3, 3), state, [(1, 1)])
+      self.world = GridWorld(
+          dimensions=(3, 3),
+          start_state=state,
+          nonstates=[],
+          end_states=[(1, 1)])
       _, new_state = self.world.take_action(action)
       self.assertEqual(state, new_state)
 
-  def test_cannot_move_to_forbidden_states(self):
+  def test_cannot_move_to_nonstates(self):
     world = GridWorld(
       dimensions = (3, 3),
       start_state = (0, 0),
       end_states = [(2, 2)],
-      forbidden_states = [(1, 0), (1, 1)])
+      nonstates = [(1, 0), (1, 1)])
 
     _, new_state = world.take_action('down')
     self.assertEqual(new_state, (0, 0))
@@ -79,6 +76,17 @@ class TestGridWorld(unittest.TestCase):
     world.take_action('down')
     _, new_state = world.take_action('down')
     self.assertEqual(new_state, (2, 2))
+
+  def test_nonstates_are_not_actually_states(self):
+    world = GridWorld(
+      dimensions = (3, 3),
+      start_state = (0, 0),
+      end_states = [(2, 2)],
+      nonstates = [(1, 0), (1, 1)])
+
+    self.assertEqual(len(world.states), 7)
+    self.assertFalse((1, 0) in world.states)
+    self.assertFalse((1, 1) in world.states)
 
   def test_every_step_is_penalized(self):
     reward, _ = self.world.take_action('down')
@@ -113,6 +121,16 @@ class TestGridWorld(unittest.TestCase):
 
     self.assertEqual(self.world.step, 100)
     self.assertTrue(self.world.terminated)
+
+  def test_lists_all_followups(self):
+    self.assertEqual(sorted(self.world.get_followups((0, 1))), [
+      ('down', -1, (1, 1)),
+      ('left', 14, (0, 0)),
+      ('right', -1, (0, 2)),
+      ('up', 9, (0, 1))])
+
+  def test_end_state_has_no_followups(self):
+    self.assertEqual(sorted(self.world.get_followups((2, 2))), [])
 
   def test_resetting_returns_to_start_state(self):
     reward, _ = self.world.take_action('right')

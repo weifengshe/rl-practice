@@ -8,7 +8,7 @@ class TestSimulation(unittest.TestCase):
       dimensions = (3, 3),
       start_state = (1, 1),
       end_states = [(2, 2)],
-      forbidden_states = [],
+      nonstates = [],
       state_rewards = {(2, 2): 10},
       step_reward = -1)
 
