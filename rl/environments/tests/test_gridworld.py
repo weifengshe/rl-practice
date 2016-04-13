@@ -7,8 +7,9 @@ class TestGridWorld(unittest.TestCase):
     self.world = GridWorld(
       dimensions = (3, 3),
       start_state = (1, 1),
-      goal_states = [(2, 2)],
-      goal_reward = 10,
+      forbidden_states = [],
+      end_states = [(2, 2)],
+      state_rewards = {(0, 1): 10, (0, 0): 15},
       step_reward = -1,
       max_steps = 100)
 
@@ -26,11 +27,11 @@ class TestGridWorld(unittest.TestCase):
       sorted(['left', 'right', 'up', 'down']))
 
   def test_lists_all_followups(self):
-    self.assertEqual(sorted(self.world.get_followups((1, 2))), [
-      ('down', 9, (2, 2)),
-      ('left', -1, (1, 1)),
-      ('right', -1, (1, 2)),
-      ('up', -1, (0, 2))])
+    self.assertEqual(sorted(self.world.get_followups((0, 1))), [
+      ('down', -1, (1, 1)),
+      ('left', 14, (0, 0)),
+      ('right', -1, (0, 2)),
+      ('up', 9, (0, 1))])
 
   def test_move(self):
     self.assertEqual(self.world.current_state, (1, 1))
@@ -64,7 +65,7 @@ class TestGridWorld(unittest.TestCase):
     world = GridWorld(
       dimensions = (3, 3),
       start_state = (0, 0),
-      goal_states = [(2, 2)],
+      end_states = [(2, 2)],
       forbidden_states = [(1, 0), (1, 1)])
 
     _, new_state = world.take_action('down')
@@ -79,18 +80,18 @@ class TestGridWorld(unittest.TestCase):
     _, new_state = world.take_action('down')
     self.assertEqual(new_state, (2, 2))
 
-
   def test_every_step_is_penalized(self):
-    reward, _ = self.world.take_action('up')
-    self.assertEqual(reward, -1)
-
-    reward, _ = self.world.take_action('up')
-    self.assertEqual(reward, -1)
-
-  def test_reaching_goal_is_rewarded(self):
-    self.world.take_action('right')
     reward, _ = self.world.take_action('down')
+    self.assertEqual(reward, -1)
+
+    reward, _ = self.world.take_action('down')
+    self.assertEqual(reward, -1)
+
+  def test_reaching_reward_state(self):
+    reward, _ = self.world.take_action('up')
     self.assertEqual(reward, 10 - 1)
+    reward, _ = self.world.take_action('left')
+    self.assertEqual(reward, 15 - 1)
 
   def test_process_terminates_at_goal_state(self):
     self.assertFalse(self.world.terminated)

@@ -13,23 +13,23 @@ class GridWorld(object):
   coordinate_updates = [direction for (_, direction) in actions_and_updates]
 
   def __init__(self,
-      dimensions=(5, 5),
+      dimensions=(3, 4),
       start_state=(0, 0),
-      goal_states=[(4, 4)],
-      forbidden_states = [],
-      goal_reward = 10,
-      step_reward = -1,
+      end_states=[(0, 3), (1, 3)],
+      forbidden_states = [(1, 1)],
+      state_rewards = {(0, 3): 1, (1, 3): -1},
+      step_reward = -0.1,
       max_steps = 100):
     self.dimensions = dimensions
     self.states = set(np.ndindex(dimensions))
     self.start_state = start_state
-    self.goal_states = goal_states
+    self.end_states = end_states
     self.forbidden_states = forbidden_states
-    self.goal_reward = goal_reward
+    self.state_rewards = state_rewards
     self.step_reward = step_reward
     self.max_steps = max_steps
     assert self.is_state(self.start_state)
-    assert all(self.is_state(state) for state in self.goal_states)
+    assert all(self.is_state(state) for state in self.end_states)
     assert all(self.is_state(state) for state in self.forbidden_states)
     assert self.start_state not in self.forbidden_states
     self.start_episode()
@@ -52,10 +52,10 @@ class GridWorld(object):
 
   @property
   def terminated(self):
-    return (self.current_state in self.goal_states) or (self.step >= self.max_steps)
+    return (self.current_state in self.end_states) or (self.step >= self.max_steps)
 
   def get_followups(self, state):
-    if state in self.goal_states:
+    if state in self.end_states:
       return []
     else:
       return [(action,) + self.get_followup(state, action)
@@ -69,10 +69,7 @@ class GridWorld(object):
       return max(0, min(coordinate, dimension_size - 1))
 
     def reward(new_state):
-      if new_state in self.goal_states:
-        return self.goal_reward + self.step_reward
-      else:
-        return self.step_reward
+      return self.step_reward + self.state_rewards.get(new_state, 0)
 
     update = self.coordinate_updates[self.actions.index(action)]
     updated_coords = map(operator.add, state, update)

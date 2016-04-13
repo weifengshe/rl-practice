@@ -29,12 +29,11 @@ import random
 # Agent can walk to any of the four main directions on any state.
 # Walking to a wall retains the current state. All steps cause reward -1.
 
-
 def run_exercise():
   environment = GridWorld(
     dimensions=(4, 4),
-    goal_states=[(0,0), (3, 3)],
-    goal_reward=0,
+    end_states=[(0, 0), (3, 3)],
+    state_rewards={},
     step_reward=-1
   )
 

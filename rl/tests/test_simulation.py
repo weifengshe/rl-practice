@@ -7,8 +7,9 @@ class TestSimulation(unittest.TestCase):
     self.environment = GridWorld(
       dimensions = (3, 3),
       start_state = (1, 1),
-      goal_states = [(2, 2)],
-      goal_reward = 10,
+      end_states = [(2, 2)],
+      forbidden_states = [],
+      state_rewards = {(2, 2): 10},
       step_reward = -1)
 
     self.stupid_agent = AgentStub({
