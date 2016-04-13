@@ -7,7 +7,7 @@ class TestSimulation(unittest.TestCase):
     self.environment = GridWorld(
       dimensions = (3, 3),
       start_state = (1, 1),
-      goal_state = (2, 2),
+      goal_states = [(2, 2)],
       goal_reward = 10,
       step_reward = -1)
 

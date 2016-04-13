@@ -7,7 +7,7 @@ class TestGridWorld(unittest.TestCase):
     self.world = GridWorld(
       dimensions = (3, 3),
       start_state = (1, 1),
-      goal_state = (2, 2),
+      goal_states = [(2, 2)],
       goal_reward = 10,
       step_reward = -1,
       max_steps = 100)
@@ -56,7 +56,7 @@ class TestGridWorld(unittest.TestCase):
     ]
 
     for action, state in actions_on_boundaries:
-      self.world = GridWorld((3, 3), state, (1, 1))
+      self.world = GridWorld((3, 3), state, [(1, 1)])
       _, new_state = self.world.take_action(action)
       self.assertEqual(state, new_state)
 
@@ -64,7 +64,7 @@ class TestGridWorld(unittest.TestCase):
     world = GridWorld(
       dimensions = (3, 3),
       start_state = (0, 0),
-      goal_state = (2, 2),
+      goal_states = [(2, 2)],
       forbidden_states = [(1, 0), (1, 1)])
 
     _, new_state = world.take_action('down')
