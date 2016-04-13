@@ -47,7 +47,7 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 
 - [exercise3a.py](exercise3a.py): Iterative policy evaluation
 - TBD: Policy iteration
-- TBD: Value iteration
+- [exercise3c.py](exercise3c.py): Value iteration
 
 ### Lecture 4: Model-Free Prediction
 
