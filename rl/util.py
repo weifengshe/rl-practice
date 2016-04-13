@@ -21,7 +21,7 @@ def print_state_actions(environment, agent):
 
   (xs, ys) = zip(*environment.states)
   dimensions = (max(*xs) + 1, max(*ys) + 1)
-  array = np.empty(dimensions, dtype='string')
+  array = np.full(dimensions, '-', dtype='string')
   for state in environment.states:
     array[state] = agent.choose_action(state)
   print array
