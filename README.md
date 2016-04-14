@@ -46,15 +46,13 @@ The numbering of exercises follows the lectures of [David Silver's Reinforcement
 Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/DP.pdf) from David Silver's course.
 
 - [exercise3a.py](exercise3a.py): Iterative policy evaluation
-- TBD: Policy iteration
-- [exercise3c.py](exercise3c.py): Value iteration
+- [exercise3b.py](exercise3b.py): Value iteration
 
 ### Lecture 4: Model-Free Prediction
 
 Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/MC-TD.pdf) from David Silver's course.
 
-- TBD: Monte-carlo policy evaluation
-- [exercise4b.py](exercise4b.py): TD policy evaluation
+- [exercise4a.py](exercise4a.py): TD policy evaluation
 
 ### Lecture 5: Model-Free Control
 
