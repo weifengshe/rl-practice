@@ -7,7 +7,7 @@ This is a set of exercises on reinforcement learning for our study group at Aalt
 Clone this repository from github with
 
 ```bash
-git clone git@github.com:tarvaina/rl-practice.git
+git clone https://github.com/tarvaina/rl-practice.git
 ```
 
 Install numpy with
