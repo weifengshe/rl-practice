@@ -60,7 +60,7 @@ class TemporalDifferencePredictor(object):
 
     # Constants to be tweaked according to your tastes.
     self.td_lambda = 0.9
-    self.learning_rate = 0.9
+    self.learning_rate = 0.1
 
   def start_episode(self):
     self.episode_state_history = []
