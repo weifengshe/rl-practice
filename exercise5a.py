@@ -70,7 +70,7 @@ class TDAgent(object):
 
     # Constants to be tweaked according to your tastes.
     self.td_lambda = 0.9
-    self.learning_rate = 0.9
+    self.learning_rate = 0.1
 
     # When False, we will use Greedy instead of EpsilonGreedy.
     self.exploration = exploration

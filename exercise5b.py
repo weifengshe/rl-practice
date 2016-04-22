@@ -68,7 +68,7 @@ class SarsaAgent(object):
 
     # Constants to be tweaked according to your tastes.
     self.sarsa_lambda = 0.9
-    self.learning_rate = 0.9
+    self.learning_rate = 0.1
 
     # When False, we will use Greedy instead of EpsilonGreedy.
     self.exploration = exploration
