@@ -40,7 +40,7 @@ def run_exercise():
   agent = TDAgent(environment, exploration=True)
 
   simulation = Simulation(environment, agent)
-  for step in xrange(1, 1000):
+  for step in xrange(1, 10000):
     episode = simulation.run_episode()
 
   print "State value estimates"
@@ -70,7 +70,7 @@ class TDAgent(object):
 
     # Constants to be tweaked according to your tastes.
     self.td_lambda = 0.9
-    self.learning_rate = 0.9
+    self.learning_rate = 0.01
 
     # When False, we will use Greedy instead of EpsilonGreedy.
     self.exploration = exploration
@@ -83,15 +83,14 @@ class TDAgent(object):
     self.episode_state_history.append(state)
     epsilon = self.epsilon(len(self.episode_state_history))
 
-    #### TODO:
-    # Change this function to implement an epsilon-greedy policy using
-    #
-    # - self.get_followups(state) to list the available choices
-    # - self.state_values[state] to get the values of states
-    # - epsilon for the current epsilon value
-    #
-    # You can assume that discount factor is 1.
-    return random.choice(self.actions)
+    action_values = {
+      action: reward + self.state_values[afterstate]
+      for action, reward, afterstate in self.get_followups(state)}
+
+    if random.random() > epsilon:
+      return max(self.actions, key=lambda action: action_values[action])
+    else:
+      return random.choice(self.actions)
 
   def learn(self, state, action, reward, new_state):
     #### TODO:
@@ -104,7 +103,11 @@ class TDAgent(object):
     # - self.learning_rate for alpha value
     #
     # You can assume that discount factor is 1.
-    pass
+
+    td_error = reward + self.state_values[new_state] - self.state_values[state]
+    for index, state in enumerate(reversed(self.episode_state_history)):
+      change = self.learning_rate * (self.td_lambda**index) * td_error
+      self.state_values[state] += change
 
   def epsilon(self, k):
     if self.exploration:
