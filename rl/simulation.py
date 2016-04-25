@@ -12,12 +12,10 @@ class Simulation(object):
     for learner in self.learners:
       learner.start_episode()
 
-    history = []
     while not self.environment.terminated:
-      history.append(self.run_step())
+      yield self.run_step()
 
-    history.append((self.environment.current_state, None, None))
-    return history
+    yield self.environment.current_state
 
   def run_step(self):
     assert not self.environment.terminated
