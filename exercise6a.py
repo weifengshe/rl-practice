@@ -17,10 +17,11 @@ def run_exercise():
 
   for step in xrange(11):
     print "Starting episode %d" % step
-    episode = simulation.run_episode()
 
     if step % 10 == 0:
-      util.save_animation(episode, "videos/%s/%07d.gif" % (run_name, step))
+      util.save_animation(simulation.episode_steps(), "videos/%s/%07d.gif" % (run_name, step))
+    else:
+      simulation.run_episode()
 
   util.open_videos_in_web_browser("videos/%s" % run_name)
 

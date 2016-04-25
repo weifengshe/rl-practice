@@ -25,7 +25,7 @@ class TestSimulation(unittest.TestCase):
 
   def test_policy_run_for_max_steps(self):
     simulation = Simulation(self.environment, self.stupid_agent)
-    history = simulation.run_episode()
+    history = list(simulation.episode_steps())
 
     self.assertEqual(len(history), 101)
     self.assertEqual(history[0], ((1, 1), 'left', -1))
@@ -35,9 +35,8 @@ class TestSimulation(unittest.TestCase):
 
   def test_policy_run_finding_goal(self):
     simulation = Simulation(self.environment, self.smart_agent)
-    history = simulation.run_episode()
 
-    self.assertEqual(history, [
+    self.assertEqual(list(simulation.episode_steps()), [
         ((1, 1), 'right', -1),
         ((1, 2), 'down', 9),
         ((2, 2), None, None)])
