@@ -12,6 +12,10 @@ make -j 4
 sudo pip install .
 ```
 
-That's it!
+That's it! You can test if it works by running:
+
+```bash
+python doc/examples/python_example.py
+```
 
 For more about ALE, see its [PDF manual](https://github.com/mgbellemare/Arcade-Learning-Environment/raw/master/doc/manual/manual.pdf) and the [github repo](https://github.com/mgbellemare/Arcade-Learning-Environment).
