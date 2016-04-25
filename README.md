@@ -10,11 +10,13 @@ Clone this repository from github with
 git clone https://github.com/tarvaina/rl-practice.git
 ```
 
-Install numpy with
+Install python libraries with
 
 ```bash
-pip install numpy
+pip install numpy petname imageio
 ```
+
+For exercise that use Atari 2600 games, see [installation instructions for Arcade Learning Environment](install_ale.md).
 
 ## Running the exercises
 
@@ -61,3 +63,9 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 - [exercise5a.py](exercise5a.py): TD control with afterstates
 - [exercise5b.py](exercise5b.py): Sarsa
 - [exercise5c.py](exercise5c.py): Q-learning
+
+### Lecture 6: Value Function Approximation
+
+Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/D.Silver/web/Teaching_files/FA.pdf) from David Silver's course.
+
+- (Work in progress: [exercise6a.py](exercise6a.py): DQN learning with Atari games)
