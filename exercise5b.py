@@ -66,6 +66,9 @@ class SarsaAgent(object):
     # List of state-action pairs taken in this episode.
     self.episode_state_action_history = []
 
+    # How many times learn() has been called
+    self.learning_step = 0
+
     # Constants to be tweaked according to your tastes.
     self.sarsa_lambda = 0.9
     self.learning_rate = 0.1
@@ -77,7 +80,7 @@ class SarsaAgent(object):
     self.episode_state_action_history = []
 
   def choose_action(self, state):
-    epsilon = self.epsilon(len(self.episode_state_action_history) + 1)
+    epsilon = self.epsilon(self.learning_step + 1)
 
     #### TODO:
     # Change this function to implement an epsilon-greedy policy using
@@ -93,6 +96,8 @@ class SarsaAgent(object):
     return action
 
   def learn(self, state, action, reward, new_state):
+    self.learning_step += 1
+
     #### TODO:
     # Change this function to implement Sarsa(0) or Sarsa(lambda) using
     #

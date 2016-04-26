@@ -63,8 +63,8 @@ class QLearningAgent(object):
     # List of all available actions.
     self.actions = environment.actions
 
-    # The current step number in the episode
-    self.episode_step = 0
+    # How many times learn() has been called
+    self.learning_step = 0
 
     # Constants to be tweaked according to your tastes.
     self.learning_rate = 0.1
@@ -73,12 +73,10 @@ class QLearningAgent(object):
     self.exploration = exploration
 
   def start_episode(self):
-    self.episode_step = 0
+    pass
 
   def choose_action(self, state):
-    # Keep these two lines unchanged.
-    self.episode_step += 1
-    epsilon = self.epsilon(self.episode_step)
+    epsilon = self.epsilon(self.learning_step + 1)
 
     #### TODO:
     # Change this function to implement an epsilon-greedy policy using
@@ -91,6 +89,8 @@ class QLearningAgent(object):
     return random.choice(self.actions)
 
   def learn(self, state, action, reward, new_state):
+    self.learning_step += 1
+
     #### TODO:
     # Change this function to implement Q-learning using
     #
