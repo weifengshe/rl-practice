@@ -10,13 +10,13 @@ def generate_name():
   return petname.Generate(3, '-')
 
 def save_animation(episode, filename):
-  (images, actions, rewards) = zip(*episode)
-
   directory = os.path.dirname(filename)
   if not os.path.exists(directory):
       os.makedirs(directory)
 
-  imageio.mimwrite(filename, images, fps=50)
+  image_generator = (images for (images, actions, rewards) in episode)
+
+  imageio.mimwrite(filename, image_generator, fps=50)
   print "Saved video to %s" % filename
 
 def open_videos_in_web_browser(directory):
