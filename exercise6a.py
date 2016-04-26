@@ -5,6 +5,7 @@ import random
 import tensorflow as tf
 from tensorflow.contrib import skflow
 import numpy as np
+from collections import deque
 
 ######
 # Exercise: DQN to play Breakout... Work in progress
@@ -31,12 +32,16 @@ def run_exercise():
 
 
 class DQN(object):
+  replay_memory_size = 64
+  replay_sample_size = 8
+  discount_factor = 0.99
+
   def __init__(self, environment, run_name, exploration=True):
     self.actions = environment.actions
     self.action_values = ConvNet(self.actions, run_name=run_name)
-    self.discount_factor = 0.9
     self.learning_step = 1
     self.exploration = exploration
+    self.replay_memory = deque()
 
   def start_episode(self):
     pass
@@ -64,9 +69,21 @@ class DQN(object):
     self.learning_step += 1
     if reward != 0:
       print "Step %d reward: %d" % (self.learning_step, reward)
-    new_action = self.greedy_action(new_state)
-    new_value = self.action_values.estimate(new_state, new_action)
-    self.action_values.update(state, action, reward + self.discount_factor * new_value)
+
+    self.replay_memory.append((state, action, reward, new_state))
+
+    if len(self.replay_memory) >= self.replay_sample_size:
+      replay_sample = random.sample(self.replay_memory, self.replay_sample_size)
+
+      for (state, action, reward, new_state) in replay_sample:
+        new_action = self.greedy_action(new_state)
+        new_value = self.action_values.estimate(new_state, new_action)
+        target = reward + self.discount_factor * new_value
+        self.action_values.update(state, action, target)
+
+    if len(self.replay_memory) > self.replay_memory_size:
+      self.replay_memory.popleft()
+
 
   def epsilon(self, k):
     return 0.1
