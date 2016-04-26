@@ -71,17 +71,21 @@ class TemporalDifferencePredictor(object):
   def learn(self, state, action, reward, new_state):
     self.episode_state_history.append(state)
 
-    #### TODO:
-    # Change this function to implement TD(0) or TD(lambda) using
-    #
-    # - reversed(self.episode_state_history) to iterate
-    #   over past states in reverse order (if doing TD(lambda)).
-    # - self.state_values[state] to get and update the
-    #   state value estimates
-    # - self.td_lambda for the lambda value
-    # - self.learning_rate for alpha value
-    #
-    # You can assume that discount factor is 1.
+    current_value = self.state_values[state]
+    new_value = self.state_values[new_state]
+    td_error = reward + new_value - current_value
+
+    max_value_update = 0
+    for index, state in enumerate(reversed(self.episode_state_history)):
+      if self.td_lambda**index < 0.0001:
+        break
+      value_update = td_error * self.learning_rate * self.td_lambda**index
+      max_value_update = max(max_value_update, abs(value_update))
+      self.state_values[state] += value_update
+
+    # if random.random() <= 0.00001:
+    #   print max_value_update,
+
 
   def state_value_estimate(self, state):
     return self.state_values[state]
