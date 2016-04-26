@@ -17,7 +17,6 @@ def run_exercise():
   environment = Breakout()
   agent = DQN(environment, run_name)
   simulation = Simulation(environment, agent)
-  return
 
   for step in xrange(11):
     print
@@ -78,14 +77,12 @@ class ConvNet(object):
   consecutive_screenshots = 2
 
   def __init__(self, actions, run_name):
-    self.graph = self.build_net(actions)
+    self.placeholders = self.build_placeholders(actions)
+    assert shapes(self.placeholders.screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
 
-  def build_net(self, actions):
-    placeholders = self.build_placeholders(actions)
-    assert shapes(placeholders.screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
-
-    preprocessed = self.build_preprocessing(placeholders.screenshots)
+    preprocessed = self.build_preprocessing(self.placeholders.screenshots)
     assert shape(preprocessed) == (None, 32, 32, 2)
+    self.preprocessed = preprocessed
 
     conv1 = self.build_conv_layer(preprocessed, 8, 'conv1')
     assert shape(conv1) == (None, 16, 16, 8)
@@ -96,13 +93,49 @@ class ConvNet(object):
     conv3 = self.build_conv_layer(conv2, 8, 'conv3')
     assert shape(conv3) == (None, 4, 4, 8)
 
-    flat = tf.reshape(conv2, [-1, 4 * 4 * 8])
+    flat = tf.reshape(conv3, [-1, 4 * 4 * 8])
     assert shape(flat) == (None, 128)
 
-    estimators = self.build_linear_estimators(flat, actions)
-    assert shapes(estimators) == shapes(placeholders.targets) ==  { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
+    self.estimates = self.build_linear_estimators(flat, actions)
+    assert shapes(self.estimates) == shapes(self.placeholders.targets) ==  { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
 
-    return estimators
+    losses = self.build_losses(self.estimates, self.placeholders.targets)
+    assert shapes(losses) == { 0: (), 1: (), 3: (), 4: () }
+
+    self.optimizers = self.build_optimizers(losses)
+    assert len(self.optimizers) == len(actions)
+    assert all(type(optimizer) is tf.Operation for optimizer in self.optimizers.values())
+
+    initialize = tf.initialize_all_variables()
+
+    self.session = tf.Session()
+    self.session.run(initialize)
+
+  def estimate(self, screenshots, action):
+    assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
+
+    feed_dict = {
+      placeholder: [screenshot]
+      for (placeholder, screenshot) in
+      zip(self.placeholders.screenshots, screenshots)
+    }
+    assert len(feed_dict) == 2
+
+    estimate = self.session.run(self.estimates[action], feed_dict)
+    assert len(estimate) == 1, estimate
+    return estimate[0]
+
+  def update(self, screenshots, action, target):
+    assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
+
+    feed_dict = {
+      placeholder: [screenshot]
+      for (placeholder, screenshot)
+      in zip(self.placeholders.screenshots, screenshots)
+    }
+    feed_dict[self.placeholders.targets[action]] = [target]
+
+    self.session.run(self.optimizers[action], feed_dict)
 
   def build_placeholders(self, actions):
     input_tensor_dimensions = [None] +  list(self.screenshot_dimensions)
@@ -138,6 +171,8 @@ class ConvNet(object):
 
     result = tf.image.resize_bicubic(grays_combined, (32, 32))
     assert shape(result) == (None, 32, 32, 2)
+
+    # TODO: Whiten
 
     result.grays = grays
     result.grays_combined = grays_combined
@@ -176,6 +211,22 @@ class ConvNet(object):
       result.W = W
       result.b = b
       return result
+
+  def build_losses(self, estimators, targets):
+    assert estimators.keys() == targets.keys()
+
+    return {
+      action: tf.nn.l2_loss(estimators[action] - targets[action])
+      for action in estimators.keys()
+    }
+
+  def build_optimizers(self, losses):
+    optimizer = tf.train.AdamOptimizer()
+    return {
+      action: optimizer.minimize(losses[action])
+      for action in losses.keys()
+    }
+
 
 def shapes(obj):
   def is_tensor_or_collection(t):

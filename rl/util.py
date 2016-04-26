@@ -14,7 +14,7 @@ def save_animation(episode, filename):
   if not os.path.exists(directory):
       os.makedirs(directory)
 
-  image_generator = (images for (images, actions, rewards) in episode)
+  image_generator = (screenshot_pair[1] for (screenshot_pair, actions, rewards) in episode)
 
   imageio.mimwrite(filename, image_generator, fps=50)
   print "Saved video to %s" % filename

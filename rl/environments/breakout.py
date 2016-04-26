@@ -10,6 +10,9 @@ class Breakout(object):
     self.ale.setBool("display_screen", False)
     self.ale.setBool("sound", False)
     self.ale.loadROM("%s/breakout.bin" % rom_directory)
+    self.current_state = [
+      self.ale.getScreenRGB(), self.ale.getScreenRGB()
+    ]
 
   def start_episode(self):
     self.ale.reset_game()
@@ -17,11 +20,13 @@ class Breakout(object):
   def take_action(self, action):
     assert not self.terminated
     reward = self.ale.act(action)
+    self.roll_state()
     return (reward, self.current_state)
 
-  @property
-  def current_state(self):
-    return self.ale.getScreenRGB()
+  def roll_state(self):
+    assert len(self.current_state) == 2
+    self.current_state = [self.current_state[1], self.ale.getScreenRGB()]
+    assert len(self.current_state) == 2
 
   @property
   def actions(self):
