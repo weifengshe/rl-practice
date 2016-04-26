@@ -17,6 +17,7 @@ def run_exercise():
   environment = Breakout()
   agent = DQN(environment, run_name)
   simulation = Simulation(environment, agent)
+  return
 
   for step in xrange(11):
     print
@@ -73,48 +74,136 @@ class DQN(object):
 
 
 class ConvNet(object):
+  screenshot_dimensions = (210, 160, 3)
+  consecutive_screenshots = 2
+
   def __init__(self, actions, run_name):
-    self.action_estimator = {
-      action: self.estimator('action-' + str(action))
+    self.graph = self.build_net(actions)
+
+  def build_net(self, actions):
+    placeholders = self.build_placeholders(actions)
+    assert shapes(placeholders.screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
+
+    preprocessed = self.build_preprocessing(placeholders.screenshots)
+    assert shape(preprocessed) == (None, 32, 32, 2)
+
+    conv1 = self.build_conv_layer(preprocessed, 8, 'conv1')
+    assert shape(conv1) == (None, 16, 16, 8)
+
+    conv2 = self.build_conv_layer(conv1, 8, 'conv2')
+    assert shape(conv2) == (None, 8, 8, 8)
+
+    conv3 = self.build_conv_layer(conv2, 8, 'conv3')
+    assert shape(conv3) == (None, 4, 4, 8)
+
+    flat = tf.reshape(conv2, [-1, 4 * 4 * 8])
+    assert shape(flat) == (None, 128)
+
+    estimators = self.build_linear_estimators(flat, actions)
+    assert shapes(estimators) == shapes(placeholders.targets) ==  { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
+
+    return estimators
+
+  def build_placeholders(self, actions):
+    input_tensor_dimensions = [None] +  list(self.screenshot_dimensions)
+
+    screenshots = [
+      tf.placeholder(tf.float32, input_tensor_dimensions, name="screenshots")
+      for _ in xrange(self.consecutive_screenshots)
+    ]
+    assert shapes(screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
+
+    targets = {
+      action: tf.placeholder(tf.float32, [None], name="targets")
       for action in actions
     }
-    self.run_name = run_name
+    assert shapes(targets) == { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
 
-  def estimator(self, name):
-    with tf.variable_scope(name):
-      estimator = skflow.TensorFlowEstimator(
-          model_fn=self.conv_model,
-          n_classes=1, batch_size=1, steps=1,
-          continue_training=True, learning_rate=0.0001)
+    class Placeholders(object):
+      pass
+    placeholders = Placeholders()
+    placeholders.screenshots = screenshots
+    placeholders.targets = targets
 
-    estimator.fit(np.zeros((1, 210, 160, 3)), [0])
-    return estimator
+    return placeholders
 
-  def conv_model(self, X, y):
-    rescaled = tf.image.resize_bicubic(tf.image.rgb_to_grayscale(X), (32, 32))
-    conv1 = self.conv_layer(rescaled, 8, 'conv1') # (16, 16)
-    conv2 = self.conv_layer(conv1, 8, 'conv2') # (8, 8)
-    flat = tf.reshape(conv2, [-1, 8 * 8 * 8])
-    return skflow.models.linear_regression(flat, y)
+  def build_preprocessing(self, screenshots):
+    assert shapes(screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
 
-  def conv_layer(self, input, n_filters, name):
+    grays = [tf.image.rgb_to_grayscale(screenshot) for screenshot in screenshots]
+    assert shapes(grays) == [(None, 210, 160, 1), (None, 210, 160, 1)]
+
+    grays_combined = tf.concat(3, grays)
+    assert shape(grays_combined) == (None, 210, 160, 2)
+
+    result = tf.image.resize_bicubic(grays_combined, (32, 32))
+    assert shape(result) == (None, 32, 32, 2)
+
+    result.grays = grays
+    result.grays_combined = grays_combined
+    result.resized = result
+    return result
+
+  def build_conv_layer(self, input, n_filters, name):
     with tf.variable_scope(name):
       h = skflow.ops.conv2d(input, n_filters=n_filters, filter_shape=[3, 3],
           bias=True, activation=tf.nn.relu)
-      return self.max_pool_2x2(h)
-
-  def max_pool_2x2(self, tensor_in):
-    return tf.nn.max_pool(tensor_in, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
+      maxpool = tf.nn.max_pool(h, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1],
         padding='SAME')
+      maxpool.h = h
+      return maxpool
 
-  def update(self, image, action, target):
-    self.action_estimator[action].fit(
-        np.array([image]),
-        np.array([target]),
-        logdir='tensorflow_logs/%s/%s' % (self.run_name, str(action)))
+  def build_linear_estimators(self, input, actions):
+    estimators = {
+      action: self.build_linear_estimator(input, name="estimator_%d" % action)
+      for action in actions
+    }
 
-  def estimate(self, image, action):
-    [[result]] = self.action_estimator[action].predict(np.array([image]))
-    return result
+    assert len(estimators) == len(actions)
+    assert all(shape(estimator) == (None,)
+        for estimator in estimators.values())
+
+    return estimators
+
+  def build_linear_estimator(self, input, name):
+    with tf.variable_scope(name):
+      input_width= shape(input)[-1]
+      W = tf.Variable(tf.random_normal([input_width, 1], stddev=0.05), tf.float32, name="W")
+      b = tf.Variable(tf.random_normal([1], stddev=0.05), tf.float32, name="b")
+      result = tf.reshape((tf.matmul(input, W) + b), [-1])
+      assert shape(result) == (None,)
+
+      result.W = W
+      result.b = b
+      return result
+
+def shapes(obj):
+  def is_tensor_or_collection(t):
+    if type(t) is list or type(t) is tuple:
+      return all(map(is_tensor_or_collection, t))
+    elif type(t) is dict:
+      return all(map(is_tensor_or_collection, t.values()))
+    else:
+      return type(t) is tf.Tensor
+
+  def _shapes(obj):
+    if type(obj) is list:
+      return map(_shapes, obj)
+    if type(obj) is tuple:
+      return tuple(map(_shapes, obj))
+    elif type(obj) is dict:
+      return { k: _shapes(obj[k]) for k in obj }
+    else:
+      return shape(obj)
+
+  assert is_tensor_or_collection(obj)
+  return _shapes(obj)
+
+
+def shape(tensor):
+  assert type(tensor) is tf.Tensor, "tensor is not Tensor: %r" % tensor
+  return tuple([dimension.value for dimension in tensor.get_shape()])
 
 run_exercise()
+
+
