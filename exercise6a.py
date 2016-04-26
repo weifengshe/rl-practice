@@ -169,14 +169,15 @@ class ConvNet(object):
     grays_combined = tf.concat(3, grays)
     assert shape(grays_combined) == (None, 210, 160, 2)
 
-    result = tf.image.resize_bicubic(grays_combined, (32, 32))
-    assert shape(result) == (None, 32, 32, 2)
+    resized = tf.image.resize_bicubic(grays_combined, (32, 32))
+    assert shape(resized) == (None, 32, 32, 2)
 
-    # TODO: Whiten
+    result = (resized - 128.0) / 128.0
+    assert shape(result) == (None, 32, 32, 2)
 
     result.grays = grays
     result.grays_combined = grays_combined
-    result.resized = result
+    result.resized = resized
     return result
 
   def build_conv_layer(self, input, n_filters, name):
