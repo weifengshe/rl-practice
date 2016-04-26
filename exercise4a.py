@@ -1,4 +1,4 @@
-from rl.environments import Cliff
+from rl.environments import GridWorld
 from rl import Simulation
 from rl import util
 import random
@@ -9,32 +9,35 @@ import random
 # Look at the code in the TemporalDifferencePredictor class below
 # and implement the missing parts.
 #
-#
-# The cliff world looks like this:
+# The gridworld looks like this:
 #
 # ```
-# +-------------+
-# |.............|
-# |.............|
-# |.............|
-# |SxxxxxxxxxxxE|
-# +-------------+
+# +----+
+# |E...|
+# |....|
+# |..S.|
+# |...E|
+# +----+
 # ```
 #
 # where:
 #
 # - `S` is the start state,
 # - `E` is the end state,
-# - `x` is a canyon
 # - `|` and `-` are walls
 #
 # Agent can walk to any of the four main directions on any state.
-# Walking to a wall retains the current state. Walking to a canyon
-# causes reward -100 and the agent to teleport to the start state.
-# All other steps cause reward -1.
+# Walking to a wall retains the current state. All steps cause reward -1.
 
 def run_exercise():
-  environment = Cliff()
+  environment = GridWorld(
+    dimensions=(4, 4),
+    end_states=[(0, 0), (3, 3)],
+    start_state=(2, 2),
+    nonstates=[],
+    state_rewards={},
+    step_reward=-1
+  )
 
   random_policy = RandomPolicy(environment.actions)
   td = TemporalDifferencePredictor(environment.states)
@@ -60,7 +63,7 @@ class TemporalDifferencePredictor(object):
 
     # Constants to be tweaked according to your tastes.
     self.td_lambda = 0.9
-    self.learning_rate = 0.9
+    self.learning_rate = 0.1
 
   def start_episode(self):
     self.episode_state_history = []
@@ -79,15 +82,6 @@ class TemporalDifferencePredictor(object):
     # - self.learning_rate for alpha value
     #
     # You can assume that discount factor is 1.
-
-  def epsilon(self, k):
-    if self.exploration:
-      return 1.0 / k
-      ### Alternative schedules to try:
-      # return 0.1
-      # return k**(-0.75)
-    else:
-      return 0
 
   def state_value_estimate(self, state):
     return self.state_values[state]

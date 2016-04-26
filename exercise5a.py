@@ -65,6 +65,9 @@ class TDAgent(object):
     # Function from states to (action, reward, afterstate) tuples.
     self.get_followups = environment.get_followups
 
+    # How many times learn() has been called
+    self.learning_step = 0
+
     # List of states visited in this episode.
     self.episode_state_history = []
 
@@ -79,9 +82,8 @@ class TDAgent(object):
     self.episode_state_history = []
 
   def choose_action(self, state):
-    # Keep these two lines unchanged.
     self.episode_state_history.append(state)
-    epsilon = self.epsilon(len(self.episode_state_history))
+    epsilon = self.epsilon(self.learning_step + 1)
 
     action_values = {
       action: reward + self.state_values[afterstate]
@@ -93,6 +95,8 @@ class TDAgent(object):
       return random.choice(self.actions)
 
   def learn(self, state, action, reward, new_state):
+    self.learning_step += 1
+
     #### TODO:
     # Change this function to implement TD(0) or TD(lambda) using
     #
