@@ -25,7 +25,7 @@ class Breakout(object):
 
   @property
   def actions(self):
-    return self.ale.getLegalActionSet()
+    return self.ale.getMinimalActionSet()
 
   @property
   def terminated(self):

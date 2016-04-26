@@ -13,7 +13,7 @@ git clone https://github.com/tarvaina/rl-practice.git
 Install python libraries with
 
 ```bash
-pip install numpy petname imageio
+pip install numpy petname imageio tensorflow
 ```
 
 For exercise that use Atari 2600 games, see [installation instructions for Arcade Learning Environment](install_ale.md).

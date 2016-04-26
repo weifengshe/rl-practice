@@ -1,6 +1,8 @@
 ### Output videos:
 videos/
 
+### Tensorflow logs
+tensorflow_logs/
 
 ### Sublime-text:
 *.sublime-project
