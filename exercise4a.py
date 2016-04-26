@@ -80,15 +80,6 @@ class TemporalDifferencePredictor(object):
     #
     # You can assume that discount factor is 1.
 
-  def epsilon(self, k):
-    if self.exploration:
-      return 1.0 / k
-      ### Alternative schedules to try:
-      # return 0.1
-      # return k**(-0.75)
-    else:
-      return 0
-
   def state_value_estimate(self, state):
     return self.state_values[state]
 
