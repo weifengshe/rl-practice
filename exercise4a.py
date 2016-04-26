@@ -1,4 +1,4 @@
-from rl.environments import Cliff
+from rl.environments import GridWorld
 from rl import Simulation
 from rl import util
 import random
@@ -9,32 +9,35 @@ import random
 # Look at the code in the TemporalDifferencePredictor class below
 # and implement the missing parts.
 #
-#
-# The cliff world looks like this:
+# The gridworld looks like this:
 #
 # ```
-# +-------------+
-# |.............|
-# |.............|
-# |.............|
-# |SxxxxxxxxxxxE|
-# +-------------+
+# +----+
+# |E...|
+# |....|
+# |..S.|
+# |...E|
+# +----+
 # ```
 #
 # where:
 #
 # - `S` is the start state,
 # - `E` is the end state,
-# - `x` is a canyon
 # - `|` and `-` are walls
 #
 # Agent can walk to any of the four main directions on any state.
-# Walking to a wall retains the current state. Walking to a canyon
-# causes reward -100 and the agent to teleport to the start state.
-# All other steps cause reward -1.
+# Walking to a wall retains the current state. All steps cause reward -1.
 
 def run_exercise():
-  environment = Cliff()
+  environment = GridWorld(
+    dimensions=(4, 4),
+    end_states=[(0, 0), (3, 3)],
+    start_state=(2, 2),
+    nonstates=[],
+    state_rewards={},
+    step_reward=-1
+  )
 
   random_policy = RandomPolicy(environment.actions)
   td = TemporalDifferencePredictor(environment.states)
