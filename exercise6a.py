@@ -15,10 +15,11 @@ def run_exercise():
   print
 
   environment = Breakout()
-  agent = DQN(environment)
+  agent = DQN(environment, run_name)
   simulation = Simulation(environment, agent)
 
   for step in xrange(11):
+    print
     print "Starting episode %d" % step
 
     if step % 1 == 0:
@@ -30,9 +31,9 @@ def run_exercise():
 
 
 class DQN(object):
-  def __init__(self, environment, exploration=True):
+  def __init__(self, environment, run_name, exploration=True):
     self.actions = environment.actions
-    self.action_values = ConvNet(self.actions)
+    self.action_values = ConvNet(self.actions, run_name=run_name)
     self.discount_factor = 0.9
     self.learning_step = 1
     self.exploration = exploration
@@ -43,17 +44,15 @@ class DQN(object):
   def choose_action(self, state):
     epsilon = self.epsilon(self.learning_step)
 
-    if self.learning_step % 10 == 0:
-      print "Step:", self.learning_step
-      print "Action values:", repr({
+    if self.learning_step % 100 == 0:
+      print "Step %d action values: %s" % (self.learning_step, repr({
         action: self.action_values.estimate(state, action)
         for action in self.actions
-      })
+      }))
 
-    if random.random() > epsilon:
+    if self.exploration and random.random() > epsilon:
       return self.greedy_action(state)
     else:
-      print "r",
       return random.choice(self.actions)
 
   def greedy_action(self, state):
@@ -64,27 +63,22 @@ class DQN(object):
   def learn(self, state, action, reward, new_state):
     self.learning_step += 1
     if reward != 0:
-      print reward,
+      print "Step %d reward: %d" % (self.learning_step, reward)
     new_action = self.greedy_action(new_state)
     new_value = self.action_values.estimate(new_state, new_action)
     self.action_values.update(state, action, reward + self.discount_factor * new_value)
 
   def epsilon(self, k):
-    if self.exploration:
-      # return 1.0 / k
-      ### Alternative schedules to try:
-      return 0.1
-      # return (k/10.0)**(-0.8)
-    else:
-      return 0
+    return 0.1
 
 
 class ConvNet(object):
-  def __init__(self, actions):
+  def __init__(self, actions, run_name):
     self.action_estimator = {
       action: self.estimator('action-' + str(action))
       for action in actions
     }
+    self.run_name = run_name
 
   def estimator(self, name):
     with tf.variable_scope(name):
@@ -117,7 +111,7 @@ class ConvNet(object):
     self.action_estimator[action].fit(
         np.array([image]),
         np.array([target]),
-        logdir='tensorflow_logs/action' + action)
+        logdir='tensorflow_logs/%s/%s' % (self.run_name, str(action)))
 
   def estimate(self, image, action):
     [[result]] = self.action_estimator[action].predict(np.array([image]))
