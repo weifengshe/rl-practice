@@ -32,9 +32,10 @@ def run_exercise():
 
 
 class DQN(object):
-  replay_memory_size = 64
-  replay_sample_size = 8
-  discount_factor = 0.99
+  # target_q_max_age = 5000 # 10000 in DeepMind paper
+  replay_memory_size = 50000 # 1000000 in DeepMind paper
+  replay_sample_size = 1 # 32 in DeepMind paper
+  discount_factor = 0.9 # 0.99 in DeepMind paper
 
   def __init__(self, environment, run_name, exploration=True):
     self.actions = environment.actions
@@ -49,7 +50,7 @@ class DQN(object):
   def choose_action(self, state):
     epsilon = self.epsilon(self.learning_step)
 
-    if self.learning_step % 100 == 0:
+    if self.learning_step % 10 == 0:
       print "Step %d action values: %s" % (self.learning_step, repr({
         action: self.action_values.estimate(state, action)
         for action in self.actions
@@ -67,6 +68,9 @@ class DQN(object):
 
   def learn(self, state, action, reward, new_state):
     self.learning_step += 1
+
+    # TODO: Update target_q
+
     if reward != 0:
       print "Step %d reward: %d" % (self.learning_step, reward)
 
@@ -79,11 +83,12 @@ class DQN(object):
         new_action = self.greedy_action(new_state)
         new_value = self.action_values.estimate(new_state, new_action)
         target = reward + self.discount_factor * new_value
+
+        # TODO: Clip change to [-1, +1]
         self.action_values.update(state, action, target)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
-
 
   def epsilon(self, k):
     return 0.1
