@@ -51,10 +51,8 @@ class DQN(object):
     epsilon = self.epsilon(self.learning_step)
 
     if self.learning_step % 10 == 0:
-      print "Step %d action values: %s" % (self.learning_step, repr({
-        action: self.action_values.estimate(state, action_index)
-        for action_index, action in enumerate(self.actions)
-      }))
+      print "Step %d action values: %s" % (self.learning_step,
+          repr(self.action_values.estimate(state)))
 
     if self.exploration and random.random() > epsilon:
       return self.greedy_action(state)
@@ -63,7 +61,7 @@ class DQN(object):
 
   def greedy_action(self, state):
     def action_value(action):
-      return self.action_values.estimate(state, self.actions.index(action))
+      return self.action_values.estimate(state)[self.actions.index(action)]
     return max(self.actions, key=action_value)
 
   def learn(self, state, action, reward, new_state):
@@ -80,12 +78,12 @@ class DQN(object):
       replay_sample = random.sample(self.replay_memory, self.replay_sample_size)
 
       for (state, action, reward, new_state) in replay_sample:
-        new_action = self.greedy_action(new_state)
-        new_value = self.action_values.estimate(new_state, self.actions.index(new_action))
-        target = reward + self.discount_factor * new_value
+        action_estimates = self.action_values.estimate(state)
+        action_target = reward + self.discount_factor * max(self.action_values.estimate(new_state))
+        action_estimates[self.actions.index(action)] = action_target
 
         # TODO: Clip change to [-1, +1]
-        #self.action_values.update(state, action, target)
+        self.action_values.update(state, action_estimates)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
@@ -132,7 +130,7 @@ class ConvNet(object):
     self.session = tf.Session()
     self.session.run(initialize)
 
-  def estimate(self, screenshots, action_idx):
+  def estimate(self, screenshots):
     assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
 
     feed_dict = {
@@ -144,19 +142,20 @@ class ConvNet(object):
 
     estimate = self.session.run(self.estimates, feed_dict)
     assert estimate.shape == (1, 4), estimate
-    return estimate[0][action_idx]
+    return estimate[0]
 
-  def update(self, screenshots, action, target):
+  def update(self, screenshots, target):
     assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
+    assert target.shape == (4,)
 
     feed_dict = {
       placeholder: [screenshot]
       for (placeholder, screenshot)
       in zip(self.placeholders.screenshots, screenshots)
     }
-    feed_dict[self.placeholders.targets[action]] = [target]
+    feed_dict[self.placeholders.targets] = [target]
 
-    self.session.run(self.optimizers[action], feed_dict)
+    self.session.run(self.optimizer, feed_dict)
 
   def build_placeholders(self, n_actions):
     input_tensor_dimensions = [None] +  list(self.screenshot_dimensions)
