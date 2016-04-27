@@ -65,21 +65,22 @@ class DQN(object):
     if reward != 0:
       print "Step %d reward: %d" % (self.learning_step, reward)
 
-    self.replay_memory.append((state, action, reward, new_state))
+    preprocessed = self.action_values.preprocess(np.array([state, new_state]))
+    self.replay_memory.append((preprocessed[0], action, reward, preprocessed[1]))
 
     if len(self.replay_memory) >= self.replay_sample_size:
       replay_sample = random.sample(self.replay_memory, self.replay_sample_size)
 
-      states = np.array([state for (state, _, _, _) in replay_sample])
+      preprocessed_states = np.array([state for (state, _, _, _) in replay_sample])
       rewards = np.array([reward for (_, _, reward, _) in replay_sample])
-      new_states = np.array([state for (_, _, _, new_state) in replay_sample])
-      new_values = np.array([max(estimate) for estimate in self.action_values.estimates(new_states)])
+      new_preprocessed_states = np.array([state for (_, _, _, new_state) in replay_sample])
+      new_values = np.array([max(estimate) for estimate in self.action_values.estimates(new_preprocessed_states)])
       action_idxs = np.array([self.actions.index(action) for (_, action, _, _) in replay_sample])
       targets = np.array([reward + self.discount_factor * new_value
           for reward, new_value in zip(rewards, new_values)])
 
       # TODO: Clip change to [-1, +1]
-      self.action_values.update(states, action_idxs, targets)
+      self.action_values.update(preprocessed_states, action_idxs, targets)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
@@ -130,32 +131,41 @@ class ConvNet(object):
 
   def estimate(self, screenshots):
     assert screenshots.shape == (2, 210, 160, 3), screenshots.shape
-    estimates = self.__estimates([screenshots])
+    feed_dict = {self.placeholders.screenshots: [screenshots]}
+    estimates = self.session.run(self.estimators, feed_dict)
     assert estimates.shape == (1, 4), estimates
     return estimates[0]
 
-  def estimates(self, screenshots):
-    assert screenshots.shape == (32, 2, 210, 160, 3), screenshots.shape
-    estimates = self.__estimates(screenshots)
+  def estimates(self, preprocessed):
+    assert preprocessed.shape == (32, 32, 32, 2), preprocessed.shape
+    feed_dict = {self.preprocessed: preprocessed}
+    return self.session.run(self.estimators, feed_dict)
     assert estimates.shape == (32, 4), estimates
     return estimates
 
-  def __estimates(self, screenshots):
-    feed_dict = {self.placeholders.screenshots: screenshots}
-    return self.session.run(self.estimators, feed_dict)
-
-  def update(self, screenshots, action_idxs, targets):
-    assert screenshots.shape == (32, 2, 210, 160, 3)
+  def update(self, preprocessed, action_idxs, targets):
+    assert preprocessed.shape == (32, 32, 32, 2)
     assert action_idxs.shape == (32,)
     assert targets.shape == (32,)
 
     feed_dict = {
-      self.placeholders.screenshots: screenshots,
+      self.preprocessed: preprocessed,
       self.placeholders.action_idxs: action_idxs,
       self.placeholders.targets: targets
     }
 
     self.session.run(self.optimizer, feed_dict)
+
+  def preprocess(self, screenshots):
+    assert screenshots.shape == (2, 2, 210, 160, 3)
+
+    feed_dict = {
+      self.placeholders.screenshots: screenshots
+    }
+
+    result = self.session.run(self.preprocessed, feed_dict)
+    assert result.shape == (2, 32, 32, 2)
+    return result
 
   def build_placeholders(self, n_actions):
     input_tensor_dimensions = [None, self.consecutive_screenshots] + list(self.screenshot_dimensions)
