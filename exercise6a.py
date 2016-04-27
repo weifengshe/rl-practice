@@ -39,7 +39,8 @@ class DQN(object):
 
   def __init__(self, environment, run_name, exploration=True):
     self.actions = list(environment.actions)
-    self.action_values = ConvNet(len(self.actions), run_name=run_name)
+    graph = ConvNetGraph(len(self.actions))
+    self.action_values = ConvNetSession(graph)
     self.learning_step = 1
     self.exploration = exploration
     self.replay_memory = deque()
@@ -89,11 +90,11 @@ class DQN(object):
     return 0.1
 
 
-class ConvNet(object):
+class ConvNetGraph(object):
   screenshot_dimensions = (210, 160, 3)
   consecutive_screenshots = 2
 
-  def __init__(self, n_actions, run_name):
+  def __init__(self, n_actions):
     self.placeholders = self.build_placeholders(n_actions)
     assert shapes(self.placeholders.screenshots) == (None, 2, 210, 160, 3)
     assert shape(self.placeholders.targets) == (None,)
@@ -124,48 +125,7 @@ class ConvNet(object):
     self.optimizer = self.build_optimizer(loss)
     assert type(self.optimizer) is tf.Operation
 
-    initialize = tf.initialize_all_variables()
-
-    self.session = tf.Session()
-    self.session.run(initialize)
-
-  def estimate(self, screenshots):
-    assert screenshots.shape == (2, 210, 160, 3), screenshots.shape
-    feed_dict = {self.placeholders.screenshots: [screenshots]}
-    estimates = self.session.run(self.estimators, feed_dict)
-    assert estimates.shape == (1, 4), estimates
-    return estimates[0]
-
-  def estimates(self, preprocessed):
-    assert preprocessed.shape == (32, 32, 32, 2), preprocessed.shape
-    feed_dict = {self.preprocessed: preprocessed}
-    return self.session.run(self.estimators, feed_dict)
-    assert estimates.shape == (32, 4), estimates
-    return estimates
-
-  def update(self, preprocessed, action_idxs, targets):
-    assert preprocessed.shape == (32, 32, 32, 2)
-    assert action_idxs.shape == (32,)
-    assert targets.shape == (32,)
-
-    feed_dict = {
-      self.preprocessed: preprocessed,
-      self.placeholders.action_idxs: action_idxs,
-      self.placeholders.targets: targets
-    }
-
-    self.session.run(self.optimizer, feed_dict)
-
-  def preprocess(self, screenshots):
-    assert screenshots.shape == (2, 2, 210, 160, 3)
-
-    feed_dict = {
-      self.placeholders.screenshots: screenshots
-    }
-
-    result = self.session.run(self.preprocessed, feed_dict)
-    assert result.shape == (2, 32, 32, 2)
-    return result
+    self.initialize = tf.initialize_all_variables()
 
   def build_placeholders(self, n_actions):
     input_tensor_dimensions = [None, self.consecutive_screenshots] + list(self.screenshot_dimensions)
@@ -255,6 +215,52 @@ class ConvNet(object):
     assert shape(loss) == ()
     optimizer = tf.train.AdamOptimizer()
     return optimizer.minimize(loss)
+
+
+class ConvNetSession(object):
+  def __init__(self, graph):
+    self.graph = graph
+    self.session = tf.Session()
+    self.session.run(self.graph.initialize)
+
+  def estimate(self, screenshots):
+    assert screenshots.shape == (2, 210, 160, 3), screenshots.shape
+    feed_dict = {self.graph.placeholders.screenshots: [screenshots]}
+    estimates = self.session.run(self.graph.estimators, feed_dict)
+    assert estimates.shape == (1, 4), estimates
+    return estimates[0]
+
+  def estimates(self, preprocessed):
+    assert preprocessed.shape == (32, 32, 32, 2), preprocessed.shape
+    feed_dict = {self.graph.preprocessed: preprocessed}
+    return self.session.run(self.graph.estimators, feed_dict)
+    assert estimates.shape == (32, 4), estimates
+    return estimates
+
+  def update(self, preprocessed, action_idxs, targets):
+    assert preprocessed.shape == (32, 32, 32, 2)
+    assert action_idxs.shape == (32,)
+    assert targets.shape == (32,)
+
+    feed_dict = {
+      self.graph.preprocessed: preprocessed,
+      self.graph.placeholders.action_idxs: action_idxs,
+      self.graph.placeholders.targets: targets
+    }
+
+    self.session.run(self.graph.optimizer, feed_dict)
+
+  def preprocess(self, screenshots):
+    assert screenshots.shape == (2, 2, 210, 160, 3)
+
+    feed_dict = {
+      self.graph.placeholders.screenshots: screenshots
+    }
+
+    result = self.session.run(self.graph.preprocessed, feed_dict)
+    assert result.shape == (2, 32, 32, 2)
+    return result
+
 
 def shapes(obj):
   def is_tensor_or_collection(t):
