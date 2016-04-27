@@ -4,6 +4,8 @@ import os
 rom_directory = os.path.dirname(os.path.realpath(__file__)) + "/roms"
 
 class Breakout(object):
+  steps_between_actions = 4
+
   def __init__(self):
     self.ale = ALEInterface()
     self.ale.setInt('random_seed', 123)
@@ -19,8 +21,14 @@ class Breakout(object):
 
   def take_action(self, action):
     assert not self.terminated
-    reward = self.ale.act(action)
-    self.roll_state()
+
+    def step():
+      reward = self.ale.act(action)
+      self.roll_state()
+      return reward
+
+    reward = sum(step() for _ in xrange(self.steps_between_actions))
+
     return (reward, self.current_state)
 
   def roll_state(self):
