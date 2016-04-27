@@ -34,7 +34,7 @@ def run_exercise():
 class DQN(object):
   # target_q_max_age = 5000 # 10000 in DeepMind paper
   replay_memory_size = 50000 # 1000000 in DeepMind paper
-  replay_sample_size = 1 # 32 in DeepMind paper
+  replay_sample_size = 32 # 32 in DeepMind paper
   discount_factor = 0.9 # 0.99 in DeepMind paper
 
   def __init__(self, environment, run_name, exploration=True):
@@ -48,21 +48,14 @@ class DQN(object):
     pass
 
   def choose_action(self, state):
-    epsilon = self.epsilon(self.learning_step)
-
+    action_values = self.action_values.estimate(np.array(state))
     if self.learning_step % 10 == 0:
-      print "Step %d action values: %s" % (self.learning_step,
-          repr(self.action_values.estimate(state)))
+      print "Step %d action values: %s" % (self.learning_step, repr(action_values))
 
-    if self.exploration and random.random() > epsilon:
-      return self.greedy_action(state)
+    if self.exploration and random.random() > self.epsilon(self.learning_step):
+      return max(self.actions, key=lambda action: action_values[self.actions.index(action)])
     else:
       return random.choice(self.actions)
-
-  def greedy_action(self, state):
-    def action_value(action):
-      return self.action_values.estimate(state)[self.actions.index(action)]
-    return max(self.actions, key=action_value)
 
   def learn(self, state, action, reward, new_state):
     self.learning_step += 1
@@ -77,13 +70,16 @@ class DQN(object):
     if len(self.replay_memory) >= self.replay_sample_size:
       replay_sample = random.sample(self.replay_memory, self.replay_sample_size)
 
-      for (state, action, reward, new_state) in replay_sample:
-        action_estimates = self.action_values.estimate(state)
-        action_target = reward + self.discount_factor * max(self.action_values.estimate(new_state))
-        action_estimates[self.actions.index(action)] = action_target
+      states = np.array([state for (state, _, _, _) in replay_sample])
+      rewards = np.array([reward for (_, _, reward, _) in replay_sample])
+      new_states = np.array([state for (_, _, _, new_state) in replay_sample])
+      new_values = np.array([max(estimate) for estimate in self.action_values.estimates(new_states)])
+      action_idxs = np.array([self.actions.index(action) for (_, action, _, _) in replay_sample])
+      targets = np.array([reward + self.discount_factor * new_value
+          for reward, new_value in zip(rewards, new_values)])
 
-        # TODO: Clip change to [-1, +1]
-        self.action_values.update(state, action_estimates)
+      # TODO: Clip change to [-1, +1]
+      self.action_values.update(states, action_idxs, targets)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
@@ -98,7 +94,9 @@ class ConvNet(object):
 
   def __init__(self, n_actions, run_name):
     self.placeholders = self.build_placeholders(n_actions)
-    assert shapes(self.placeholders.screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
+    assert shapes(self.placeholders.screenshots) == (None, 2, 210, 160, 3)
+    assert shape(self.placeholders.targets) == (None,)
+    assert shape(self.placeholders.action_idxs) == (None,)
 
     preprocessed = self.build_preprocessing(self.placeholders.screenshots)
     assert shape(preprocessed) == (None, 32, 32, 2)
@@ -116,10 +114,10 @@ class ConvNet(object):
     flat = tf.reshape(conv3, [-1, 4 * 4 * 8])
     assert shape(flat) == (None, 128)
 
-    self.estimates = self.build_linear_estimator(flat, n_actions)
-    assert shape(self.estimates) == shape(self.placeholders.targets) ==  (None, 4)
+    self.estimators = self.build_linear_estimator(flat, n_actions)
+    assert shape(self.estimators) ==  (None, 4)
 
-    loss = self.build_loss(self.estimates, self.placeholders.targets)
+    loss = self.build_loss(self.estimators, self.placeholders.action_idxs, self.placeholders.targets, n_actions)
     assert shape(loss) == ()
 
     self.optimizer = self.build_optimizer(loss)
@@ -131,60 +129,62 @@ class ConvNet(object):
     self.session.run(initialize)
 
   def estimate(self, screenshots):
-    assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
+    assert screenshots.shape == (2, 210, 160, 3), screenshots.shape
+    estimates = self.__estimates([screenshots])
+    assert estimates.shape == (1, 4), estimates
+    return estimates[0]
+
+  def estimates(self, screenshots):
+    assert screenshots.shape == (32, 2, 210, 160, 3), screenshots.shape
+    estimates = self.__estimates(screenshots)
+    assert estimates.shape == (32, 4), estimates
+    return estimates
+
+  def __estimates(self, screenshots):
+    feed_dict = {self.placeholders.screenshots: screenshots}
+    return self.session.run(self.estimators, feed_dict)
+
+  def update(self, screenshots, action_idxs, targets):
+    assert screenshots.shape == (32, 2, 210, 160, 3)
+    assert action_idxs.shape == (32,)
+    assert targets.shape == (32,)
 
     feed_dict = {
-      placeholder: [screenshot]
-      for (placeholder, screenshot) in
-      zip(self.placeholders.screenshots, screenshots)
+      self.placeholders.screenshots: screenshots,
+      self.placeholders.action_idxs: action_idxs,
+      self.placeholders.targets: targets
     }
-    assert len(feed_dict) == 2
-
-    estimate = self.session.run(self.estimates, feed_dict)
-    assert estimate.shape == (1, 4), estimate
-    return estimate[0]
-
-  def update(self, screenshots, target):
-    assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
-    assert target.shape == (4,)
-
-    feed_dict = {
-      placeholder: [screenshot]
-      for (placeholder, screenshot)
-      in zip(self.placeholders.screenshots, screenshots)
-    }
-    feed_dict[self.placeholders.targets] = [target]
 
     self.session.run(self.optimizer, feed_dict)
 
   def build_placeholders(self, n_actions):
-    input_tensor_dimensions = [None] +  list(self.screenshot_dimensions)
+    input_tensor_dimensions = [None, self.consecutive_screenshots] + list(self.screenshot_dimensions)
+    screenshots = tf.placeholder(tf.float32, input_tensor_dimensions, name="screenshots")
+    assert shapes(screenshots) == (None, 2, 210, 160, 3)
 
-    screenshots = [
-      tf.placeholder(tf.float32, input_tensor_dimensions, name="screenshots")
-      for _ in xrange(self.consecutive_screenshots)
-    ]
-    assert shapes(screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
+    targets = tf.placeholder(tf.float32, [None], name="targets")
+    assert shape(targets) == (None,)
 
-    targets = tf.placeholder(tf.float32, [None, n_actions], name="targets")
-    assert shape(targets) == (None, 4)
+    action_idxs = tf.placeholder(tf.int64, [None], name="action_idxs")
+    assert shape(action_idxs) == (None,)
 
     class Placeholders(object):
       pass
     placeholders = Placeholders()
     placeholders.screenshots = screenshots
     placeholders.targets = targets
+    placeholders.action_idxs = action_idxs
 
     return placeholders
 
   def build_preprocessing(self, screenshots):
-    assert shapes(screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
+    assert shapes(screenshots) == (None, 2, 210, 160, 3)
 
-    grays = [tf.image.rgb_to_grayscale(screenshot) for screenshot in screenshots]
-    assert shapes(grays) == [(None, 210, 160, 1), (None, 210, 160, 1)]
+    grays = tf.image.rgb_to_grayscale(screenshots)
+    assert shapes(grays) == (None, 2, 210, 160, 1)
 
-    grays_combined = tf.concat(3, grays)
-    assert shape(grays_combined) == (None, 210, 160, 2)
+    grays_combined = tf.transpose(tf.squeeze(grays, [4]), perm=[0, 2, 3, 1])
+    assert shape(grays_combined) == (None, 210, 160, 2), grays_combined
 
     resized = tf.image.resize_bicubic(grays_combined, (32, 32))
     assert shape(resized) == (None, 32, 32, 2)
@@ -218,11 +218,31 @@ class ConvNet(object):
       result.b = b
       return result
 
-  def build_loss(self, estimates, targets):
-    assert shape(estimates) == shape(targets)
-    return tf.nn.l2_loss(estimates - targets)
+  def build_loss(self, estimates, action_idxs, targets, n_actions):
+    assert shape(estimates) == (None, 4)
+    assert shape(targets) == (None,)
+    assert shape(action_idxs) == (None,)
+    assert action_idxs.dtype == np.int64
+
+    action_mask = tf.one_hot(action_idxs, depth=n_actions, on_value=1.0, off_value=0.0)
+    assert shape(action_mask) == (None, 4)
+
+    targets = tf.expand_dims(targets, 1)
+    assert shape(targets) == (None, 1)
+
+    targets = tf.tile(targets, [1, n_actions])
+    assert shape(targets) == (None, 4)
+
+    difference = action_mask * (estimates - targets)
+    assert shape(difference) == (None, 4)
+
+    loss = tf.nn.l2_loss(difference)
+    assert shape(loss) == ()
+
+    return loss
 
   def build_optimizer(self, loss):
+    assert shape(loss) == ()
     optimizer = tf.train.AdamOptimizer()
     return optimizer.minimize(loss)
 
