@@ -38,8 +38,8 @@ class DQN(object):
   discount_factor = 0.9 # 0.99 in DeepMind paper
 
   def __init__(self, environment, run_name, exploration=True):
-    self.actions = environment.actions
-    self.action_values = ConvNet(self.actions, run_name=run_name)
+    self.actions = list(environment.actions)
+    self.action_values = ConvNet(len(self.actions), run_name=run_name)
     self.learning_step = 1
     self.exploration = exploration
     self.replay_memory = deque()
@@ -52,8 +52,8 @@ class DQN(object):
 
     if self.learning_step % 10 == 0:
       print "Step %d action values: %s" % (self.learning_step, repr({
-        action: self.action_values.estimate(state, action)
-        for action in self.actions
+        action: self.action_values.estimate(state, action_index)
+        for action_index, action in enumerate(self.actions)
       }))
 
     if self.exploration and random.random() > epsilon:
@@ -63,7 +63,7 @@ class DQN(object):
 
   def greedy_action(self, state):
     def action_value(action):
-      return self.action_values.estimate(state, action)
+      return self.action_values.estimate(state, self.actions.index(action))
     return max(self.actions, key=action_value)
 
   def learn(self, state, action, reward, new_state):
@@ -81,11 +81,11 @@ class DQN(object):
 
       for (state, action, reward, new_state) in replay_sample:
         new_action = self.greedy_action(new_state)
-        new_value = self.action_values.estimate(new_state, new_action)
+        new_value = self.action_values.estimate(new_state, self.actions.index(new_action))
         target = reward + self.discount_factor * new_value
 
         # TODO: Clip change to [-1, +1]
-        self.action_values.update(state, action, target)
+        #self.action_values.update(state, action, target)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
@@ -98,8 +98,8 @@ class ConvNet(object):
   screenshot_dimensions = (210, 160, 3)
   consecutive_screenshots = 2
 
-  def __init__(self, actions, run_name):
-    self.placeholders = self.build_placeholders(actions)
+  def __init__(self, n_actions, run_name):
+    self.placeholders = self.build_placeholders(n_actions)
     assert shapes(self.placeholders.screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
 
     preprocessed = self.build_preprocessing(self.placeholders.screenshots)
@@ -118,22 +118,21 @@ class ConvNet(object):
     flat = tf.reshape(conv3, [-1, 4 * 4 * 8])
     assert shape(flat) == (None, 128)
 
-    self.estimates = self.build_linear_estimators(flat, actions)
-    assert shapes(self.estimates) == shapes(self.placeholders.targets) ==  { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
+    self.estimates = self.build_linear_estimator(flat, n_actions)
+    assert shape(self.estimates) == shape(self.placeholders.targets) ==  (None, 4)
 
-    losses = self.build_losses(self.estimates, self.placeholders.targets)
-    assert shapes(losses) == { 0: (), 1: (), 3: (), 4: () }
+    loss = self.build_loss(self.estimates, self.placeholders.targets)
+    assert shape(loss) == ()
 
-    self.optimizers = self.build_optimizers(losses)
-    assert len(self.optimizers) == len(actions)
-    assert all(type(optimizer) is tf.Operation for optimizer in self.optimizers.values())
+    self.optimizer = self.build_optimizer(loss)
+    assert type(self.optimizer) is tf.Operation
 
     initialize = tf.initialize_all_variables()
 
     self.session = tf.Session()
     self.session.run(initialize)
 
-  def estimate(self, screenshots, action):
+  def estimate(self, screenshots, action_idx):
     assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
 
     feed_dict = {
@@ -143,9 +142,9 @@ class ConvNet(object):
     }
     assert len(feed_dict) == 2
 
-    estimate = self.session.run(self.estimates[action], feed_dict)
-    assert len(estimate) == 1, estimate
-    return estimate[0]
+    estimate = self.session.run(self.estimates, feed_dict)
+    assert estimate.shape == (1, 4), estimate
+    return estimate[0][action_idx]
 
   def update(self, screenshots, action, target):
     assert len(screenshots) == len(self.placeholders.screenshots) == self.consecutive_screenshots
@@ -159,7 +158,7 @@ class ConvNet(object):
 
     self.session.run(self.optimizers[action], feed_dict)
 
-  def build_placeholders(self, actions):
+  def build_placeholders(self, n_actions):
     input_tensor_dimensions = [None] +  list(self.screenshot_dimensions)
 
     screenshots = [
@@ -168,11 +167,8 @@ class ConvNet(object):
     ]
     assert shapes(screenshots) == [(None, 210, 160, 3), (None, 210, 160, 3)]
 
-    targets = {
-      action: tf.placeholder(tf.float32, [None], name="targets")
-      for action in actions
-    }
-    assert shapes(targets) == { 0: (None,), 1: (None,), 3: (None,), 4: (None,) }
+    targets = tf.placeholder(tf.float32, [None, n_actions], name="targets")
+    assert shape(targets) == (None, 4)
 
     class Placeholders(object):
       pass
@@ -211,45 +207,25 @@ class ConvNet(object):
       maxpool.h = h
       return maxpool
 
-  def build_linear_estimators(self, input, actions):
-    estimators = {
-      action: self.build_linear_estimator(input, name="estimator_%d" % action)
-      for action in actions
-    }
-
-    assert len(estimators) == len(actions)
-    assert all(shape(estimator) == (None,)
-        for estimator in estimators.values())
-
-    return estimators
-
-  def build_linear_estimator(self, input, name):
-    with tf.variable_scope(name):
+  def build_linear_estimator(self, input, n_actions):
+    with tf.variable_scope('estimate'):
       input_width= shape(input)[-1]
-      W = tf.Variable(tf.random_normal([input_width, 1], stddev=0.05), tf.float32, name="W")
-      b = tf.Variable(tf.random_normal([1], stddev=0.05), tf.float32, name="b")
-      result = tf.reshape((tf.matmul(input, W) + b), [-1])
-      assert shape(result) == (None,)
+      W = tf.Variable(tf.random_normal([input_width, n_actions], stddev=0.05), tf.float32, name="W")
+      b = tf.Variable(tf.random_normal([n_actions], stddev=0.05), tf.float32, name="b")
+      result = tf.matmul(input, W) + b
+      assert shape(result) == (None, 4)
 
       result.W = W
       result.b = b
       return result
 
-  def build_losses(self, estimators, targets):
-    assert estimators.keys() == targets.keys()
+  def build_loss(self, estimates, targets):
+    assert shape(estimates) == shape(targets)
+    return tf.nn.l2_loss(estimates - targets)
 
-    return {
-      action: tf.nn.l2_loss(estimators[action] - targets[action])
-      for action in estimators.keys()
-    }
-
-  def build_optimizers(self, losses):
+  def build_optimizer(self, loss):
     optimizer = tf.train.AdamOptimizer()
-    return {
-      action: optimizer.minimize(losses[action])
-      for action in losses.keys()
-    }
-
+    return optimizer.minimize(loss)
 
 def shapes(obj):
   def is_tensor_or_collection(t):
