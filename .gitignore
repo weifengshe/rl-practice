@@ -1,13 +1,9 @@
-### Output videos:
-videos/
-
-### Tensorflow logs
-tensorflow_logs/
+### Videos, logs and checkpoints:
+runs/
 
 ### Sublime-text:
 *.sublime-project
 *.sublime-workspace
-
 
 ### Python:
 # Byte-compiled / optimized / DLL files

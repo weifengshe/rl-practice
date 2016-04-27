@@ -2,6 +2,7 @@ from rl.environments import Breakout
 from rl import Simulation
 from rl import util
 import random
+import os
 import tensorflow as tf
 from tensorflow.contrib import skflow
 import numpy as np
@@ -19,37 +20,51 @@ def run_exercise():
   agent = DQN(environment, run_name)
   simulation = Simulation(environment, agent)
 
-  for step in xrange(11):
+  for step in xrange(1001):
     print
     print "Starting episode %d" % step
 
-    if step % 1 == 0:
-      util.save_animation(simulation.episode_steps(), "videos/%s/%07d.gif" % (run_name, step))
+    if step % 10 == 0:
+      util.save_animation(simulation.episode_steps(), "runs/%s/videos/%07d.gif" % (run_name, step))
     else:
       simulation.run_episode()
 
-  util.open_videos_in_web_browser("videos/%s" % run_name)
+  util.open_videos_in_web_browser("runs/%s/videos/" % run_name)
 
 
 class DQN(object):
-  # target_q_max_age = 5000 # 10000 in DeepMind paper
+  target_q_max_age = 10000 # 10000 in DeepMind paper
   replay_memory_size = 50000 # 1000000 in DeepMind paper
   replay_sample_size = 32 # 32 in DeepMind paper
-  discount_factor = 0.9 # 0.99 in DeepMind paper
+  discount_factor = 0.99 # 0.99 in DeepMind paper
 
   def __init__(self, environment, run_name, exploration=True):
     self.actions = list(environment.actions)
     graph = ConvNetGraph(len(self.actions))
-    self.action_values = ConvNetSession(graph)
-    self.learning_step = 1
-    self.exploration = exploration
+    self.current_q = ConvNetSession(graph)
+    self.target_q = ConvNetSession(graph)
     self.replay_memory = deque()
+
+    self.exploration = exploration
+
+    self.learning_step = 1
+    self.save_path_prefix = "runs/%s/checkpoints/cp" % run_name
+    self.rotate_target_q()
+
+  def rotate_target_q(self):
+    directory = os.path.dirname(self.save_path_prefix)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    save_path = self.current_q.save(self.save_path_prefix, self.learning_step)
+    self.target_q.load(save_path)
+    return save_path
 
   def start_episode(self):
     pass
 
   def choose_action(self, state):
-    action_values = self.action_values.estimate(np.array(state))
+    action_values = self.current_q.estimate(np.array(state))
     if self.learning_step % 10 == 0:
       print "Step %d action values: %s" % (self.learning_step, repr(action_values))
 
@@ -61,12 +76,15 @@ class DQN(object):
   def learn(self, state, action, reward, new_state):
     self.learning_step += 1
 
-    # TODO: Update target_q
+    if self.learning_step % self.target_q_max_age == 0:
+      save_path = self.rotate_target_q()
+      print "Step %d new target q: %s" % (self.learning_step, save_path)
+
 
     if reward != 0:
       print "Step %d reward: %d" % (self.learning_step, reward)
 
-    preprocessed = self.action_values.preprocess(np.array([state, new_state]))
+    preprocessed = self.current_q.preprocess(np.array([state, new_state]))
     self.replay_memory.append((preprocessed[0], action, reward, preprocessed[1]))
 
     if len(self.replay_memory) >= self.replay_sample_size:
@@ -75,13 +93,13 @@ class DQN(object):
       preprocessed_states = np.array([state for (state, _, _, _) in replay_sample])
       rewards = np.array([reward for (_, _, reward, _) in replay_sample])
       new_preprocessed_states = np.array([state for (_, _, _, new_state) in replay_sample])
-      new_values = np.array([max(estimate) for estimate in self.action_values.estimates(new_preprocessed_states)])
+      new_values = np.array([max(estimate) for estimate in self.target_q.estimates(new_preprocessed_states)])
       action_idxs = np.array([self.actions.index(action) for (_, action, _, _) in replay_sample])
       targets = np.array([reward + self.discount_factor * new_value
           for reward, new_value in zip(rewards, new_values)])
 
       # TODO: Clip change to [-1, +1]
-      self.action_values.update(preprocessed_states, action_idxs, targets)
+      self.current_q.update(preprocessed_states, action_idxs, targets)
 
     if len(self.replay_memory) > self.replay_memory_size:
       self.replay_memory.popleft()
@@ -126,6 +144,7 @@ class ConvNetGraph(object):
     assert type(self.optimizer) is tf.Operation
 
     self.initialize = tf.initialize_all_variables()
+    self.saver = tf.train.Saver()
 
   def build_placeholders(self, n_actions):
     input_tensor_dimensions = [None, self.consecutive_screenshots] + list(self.screenshot_dimensions)
@@ -260,6 +279,12 @@ class ConvNetSession(object):
     result = self.session.run(self.graph.preprocessed, feed_dict)
     assert result.shape == (2, 32, 32, 2)
     return result
+
+  def save(self, path_prefix, step):
+    return self.graph.saver.save(self.session, path_prefix, global_step=step)
+
+  def load(self, path):
+    self.graph.saver.restore(self.session, path)
 
 
 def shapes(obj):
