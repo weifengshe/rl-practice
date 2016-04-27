@@ -42,4 +42,5 @@ class Breakout(object):
 
   @property
   def terminated(self):
-    return self.ale.game_over()
+    return self.ale.game_over() or self.ale.lives() < 5
+
