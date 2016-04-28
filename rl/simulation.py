@@ -28,6 +28,7 @@ class Simulation(object):
     state = self.environment.current_state
     action = self.agent.choose_action(state)
     reward, new_state = self.environment.take_action(action)
+    is_end = self.environment.terminated
     for learner in self.learners:
-      learner.learn(state, action, reward, new_state)
+      learner.learn(state, action, reward, new_state, is_end)
     return (state, action, reward)

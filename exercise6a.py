@@ -43,13 +43,13 @@ class DQN(object):
     graph = ConvNetGraph(len(self.actions))
     self.current_q = ConvNetSession(graph)
     self.target_q = ConvNetSession(graph)
-    self.replay_memory = deque()
 
     self.exploration = exploration
 
     self.learning_step = 1
     self.save_path_prefix = "runs/%s/checkpoints/cp" % run_name
     self.rotate_target_q()
+    self.replay_memory = ReplayMemory(self.replay_memory_size)
 
   def rotate_target_q(self):
     directory = os.path.dirname(self.save_path_prefix)
@@ -73,40 +73,93 @@ class DQN(object):
     else:
       return random.choice(self.actions)
 
-  def learn(self, state, action, reward, new_state):
+  def learn(self, state, action, reward, new_state, is_end=False):
     self.learning_step += 1
 
     if self.learning_step % self.target_q_max_age == 0:
       save_path = self.rotate_target_q()
       print "Step %d new target q: %s" % (self.learning_step, save_path)
 
-
     if reward != 0:
       print "Step %d reward: %d" % (self.learning_step, reward)
 
-    preprocessed = self.current_q.preprocess(np.array([state, new_state]))
-    self.replay_memory.append((preprocessed[0], action, reward, preprocessed[1]))
+    state, new_state = self.current_q.preprocess(np.array([state, new_state]))
+    self.replay_memory.append(state, action, reward, new_state, is_end)
 
-    if len(self.replay_memory) >= self.replay_sample_size:
-      replay_sample = random.sample(self.replay_memory, self.replay_sample_size)
+    states, actions, rewards, new_states, is_ends = self.replay_memory.sample(self.replay_sample_size)
+    assert states.shape == new_states.shape == (32, 32, 32, 2)
+    assert actions.shape == (32,)
+    assert rewards.shape == (32,)
+    assert is_ends.shape == (32,)
 
-      preprocessed_states = np.array([state for (state, _, _, _) in replay_sample])
-      rewards = np.array([reward for (_, _, reward, _) in replay_sample])
-      new_preprocessed_states = np.array([state for (_, _, _, new_state) in replay_sample])
-      new_values = np.array([max(estimate) for estimate in self.target_q.estimates(new_preprocessed_states)])
-      action_idxs = np.array([self.actions.index(action) for (_, action, _, _) in replay_sample])
-      targets = np.array([reward + self.discount_factor * new_value
-          for reward, new_value in zip(rewards, new_values)])
+    new_values = self.target_q.estimates(new_states).max(axis=1)
+    assert new_values.shape == (32,)
 
-      # TODO: Clip change to [-1, +1]
-      self.current_q.update(preprocessed_states, action_idxs, targets)
+    action_idxs = np.array([self.actions.index(action) for action in actions])
+    assert new_values.shape == (32,)
 
-    if len(self.replay_memory) > self.replay_memory_size:
-      self.replay_memory.popleft()
+    def target(reward, new_value, is_end):
+      if is_end:
+        return reward
+      else:
+        return reward + self.discount_factor * new_value
+
+    targets = np.array(map(target, rewards, new_values, is_ends))
+    assert targets.shape == (32,)
+
+    # TODO: Clip change to [-1, +1]
+    self.current_q.update(states, action_idxs, targets)
 
   def epsilon(self, k):
     return 0.1
 
+
+class ReplayMemory(object):
+  def __init__(self, max_size):
+    self.states = np.zeros((max_size, 32, 32, 2))
+    self.actions = np.zeros((max_size), dtype=np.int64)
+    self.rewards = np.zeros((max_size))
+    self.new_states = np.zeros((max_size, 32, 32, 2))
+    self.is_ends = np.zeros((max_size), dtype=bool)
+    self.max_size = max_size
+    self.n_appends = 0
+
+  def append(self, state, action, reward, new_state, is_end):
+    current_index = self.n_appends % self.max_size
+    assert 0 <= current_index < self.max_size
+
+    def all_zeros(array):
+      return np.count_nonzero(array) == 0
+
+    assert self.n_appends >= self.max_size or all_zeros(self.states[current_index])
+    self.states[current_index, ...] = state
+
+    assert self.n_appends >= self.max_size or all_zeros(self.actions[current_index])
+    self.actions[current_index, ...] = action
+
+    assert self.n_appends >= self.max_size or all_zeros(self.rewards[current_index])
+    self.rewards[current_index, ...] = reward
+
+    assert self.n_appends >= self.max_size or all_zeros(self.new_states[current_index])
+    self.new_states[current_index, ...] = new_state
+
+    assert self.n_appends >= self.max_size or all_zeros(self.is_ends[current_index])
+    self.is_ends[current_index, ...] = is_end
+
+    self.n_appends += 1
+
+
+  def sample(self, sample_size):
+    array_size = min(self.n_appends, self.max_size)
+    assert array_size <= self.n_appends and array_size <= self.max_size
+    indices = np.random.randint(array_size, size=sample_size)
+    return (
+      self.states[indices],
+      self.actions[indices],
+      self.rewards[indices],
+      self.new_states[indices],
+      self.is_ends[indices]
+    )
 
 class ConvNetGraph(object):
   screenshot_dimensions = (210, 160, 3)
@@ -314,6 +367,8 @@ def shape(tensor):
   assert type(tensor) is tf.Tensor, "tensor is not Tensor: %r" % tensor
   return tuple([dimension.value for dimension in tensor.get_shape()])
 
+
+# import cProfile
+# cProfile.runctx('run_exercise()', globals(), locals(), sort='cumulative')
+
 run_exercise()
-
-
