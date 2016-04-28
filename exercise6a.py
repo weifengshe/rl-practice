@@ -20,12 +20,12 @@ def run_exercise():
   agent = DQN(environment, run_name)
   simulation = Simulation(environment, agent)
 
-  for step in xrange(1001):
+  for episode_counter in xrange(10001):
     print
-    print "Starting episode %d" % step
+    print "Starting episode %d" % episode_counter
 
-    if step % 10 == 0:
-      util.save_animation(simulation.episode_steps(), "runs/%s/videos/%07d.gif" % (run_name, step))
+    if episode_counter % 10 == 0:
+      util.save_animation(simulation.episode_steps(), "runs/%s/videos/%07d.gif" % (run_name, episode_counter))
     else:
       simulation.run_episode()
 
