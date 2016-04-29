@@ -10,11 +10,22 @@ Clone this repository from github with
 git clone https://github.com/tarvaina/rl-practice.git
 ```
 
-Install numpy with
+Install dependencies with
 
 ```bash
-pip install numpy
+### OS X
+brew install cmake
+pip install --ignore-installed pip
+pip install numpy petname gym[classic-control]
 ```
+
+```bash
+### Ubuntu
+apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl
+pip install --ignore-installed pip
+pip install numpy petname gym[classic-control]
+```
+
 
 ## Running the exercises
 
@@ -61,3 +72,11 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 - [exercise5a.py](exercise5a.py): TD control with afterstates
 - [exercise5b.py](exercise5b.py): Sarsa
 - [exercise5c.py](exercise5c.py): Q-learning
+
+### Lecture 5: Value Function Approximation
+
+Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_files/FA.pdf) from David Silver's course.
+
+This exercise uses [OpenAI Gym](https://gym.openai.com/). See the installation instructions at the top of this page.
+
+- [exercise6a.py](exercise6a.py): Gradient Q-learning
