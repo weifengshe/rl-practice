@@ -2,12 +2,39 @@ from rl.environments import Breakout
 from rl import Simulation
 from rl import util
 import random
+import imageio
+import numpy as np
+import petname
+import os
+import fnmatch
+import webbrowser
 
 ######
 # Exercise: DQN to play Breakout... Work in progress
 
+def save_animation(episode, filename):
+  (images, actions, rewards) = zip(*episode)
+
+  directory = os.path.dirname(filename)
+  if not os.path.exists(directory):
+      os.makedirs(directory)
+
+  imageio.mimwrite(filename, images, fps=50)
+  print "Saved video to %s" % filename
+
+def write_html_index(directory):
+  files = [file for file in os.listdir(directory) if fnmatch.fnmatch(file, '*.gif')]
+  links = '\n'.join('<h2>%s</h2><div><img src="%s"></div>' % (file, file) for file in files)
+  html = "<html><head><title>%s</title><body>%s</body></html>" % (directory, links)
+
+  html_file_name = "%s/index.html" % directory
+  with open(html_file_name, "w") as html_file:
+    html_file.write(html)
+
+  return html_file_name
+
 def run_exercise():
-  run_name = util.generate_name()
+  run_name = petname.Generate(3, '-')
   print "Starting run %s" % run_name
   print
 
@@ -15,15 +42,15 @@ def run_exercise():
   agent = DQN(environment)
   simulation = Simulation(environment, agent)
 
-  for step in xrange(11):
+  for step in xrange(101):
     print "Starting episode %d" % step
+    episode = simulation.run_episode()
 
     if step % 10 == 0:
-      util.save_animation(simulation.episode_steps(), "videos/%s/%07d.gif" % (run_name, step))
-    else:
-      simulation.run_episode()
+      save_animation(episode, "gifs/%s/%07d.gif" % (run_name, step))
 
-  util.open_videos_in_web_browser("videos/%s" % run_name)
+  html_file_name = write_html_index("gifs/%s" % run_name)
+  webbrowser.open("file://" + os.path.abspath(html_file_name))
 
 
 class DQN(object):

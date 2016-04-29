@@ -7,21 +7,17 @@ class Simulation(object):
   def register_learner(self, learner):
     self.learners.append(learner)
 
-  # Run the entire episode, discarding the step results
   def run_episode(self):
-    for _ in self.episode_steps():
-      pass
-
-  # Generator that yields step results
-  def episode_steps(self):
     self.environment.start_episode()
     for learner in self.learners:
       learner.start_episode()
 
+    history = []
     while not self.environment.terminated:
-      yield self.run_step()
+      history.append(self.run_step())
 
-    yield (self.environment.current_state, None, None)
+    history.append((self.environment.current_state, None, None))
+    return history
 
   def run_step(self):
     assert not self.environment.terminated
