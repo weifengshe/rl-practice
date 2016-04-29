@@ -57,9 +57,6 @@ class GradientQAgent(object):
     # When False, we will use Greedy instead of EpsilonGreedy
     self.exploration = exploration
 
-    # Tweak learning rate according to your taste
-    self.learning_rate = 0.1
-
     # How many times learn() has been called
     self.learning_step = 0
 
