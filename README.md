@@ -79,4 +79,4 @@ Corresponding [slides](http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching_file
 
 This exercise uses [OpenAI Gym](https://gym.openai.com/). See the installation instructions at the top of this page.
 
-- [exercise6a.py](exercise6a.py): Gradient Q-learning
+- [exercise6a.py](exercise6a.py): Improving Gradient Sarsa
