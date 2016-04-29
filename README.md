@@ -16,14 +16,14 @@ Install dependencies with
 ### OS X
 brew install cmake
 pip install --ignore-installed pip
-pip install numpy petname gym[classic-control]
+pip install numpy petname gym[classic-control] tensorflow
 ```
 
 ```bash
 ### Ubuntu
 apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl
 pip install --ignore-installed pip
-pip install numpy petname gym[classic-control]
+pip install numpy petname gym[classic-control] tensorflow
 ```
 
 
