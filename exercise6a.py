@@ -7,7 +7,7 @@ import tensorflow as tf
 # Exercise: Value function approximation
 #
 # You can see an inefficient Sarsa algorithm for the mountain car
-# environment, based on the description at Sutton–Barto book
+# environment, based on the description at Sutton-Barto book
 # chapter 8.4 Control with Function Approximation:
 # https://webdocs.cs.ualberta.ca/~sutton/book/ebook/node89.html
 #
