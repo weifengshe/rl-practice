@@ -14,7 +14,7 @@ Install dependencies with
 
 ```bash
 ### OS X
-brew install cmake
+brew install cmake ffmpeg
 sudo easy_install --upgrade six
 sudo pip install --ignore-installed pip
 sudo pip install numpy petname gym[classic-control]
@@ -23,7 +23,7 @@ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorf
 
 ```bash
 ### Ubuntu
-apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl
+apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl ffmpeg
 pip install --ignore-installed pip
 pip install numpy petname gym[classic-control]
 sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.8.0-cp27-none-linux_x86_64.whl
